@@ -29,18 +29,31 @@ bsSerialNumber:	        DD 0xa0a1a2a3
 bsVolumeLabel: 	        DB "MOS FLOPPY "
 bsFileSystem: 	        DB "FAT12   "
 
+;*********************************************
+;	Print string
+;*********************************************
+print_str:
+    lodsb                   ; move next byte from string from SI to AL
+    or      al, al          ; check if AL == 0
+    jz      .print_done     ; yes - reached the end of the string, done printing
+    mov     ah, 0xE         ; no - print the character 
+    int     0x10
+    jmp     print_str
+    
+    .print_done:
+        ret
+
 ;************************************************;
 ; Reads a series of sectors
 ; CX=>Number of sectors to read
 ; AX=>Starting sector
 ; ES:BX=>Buffer to read to
 ;************************************************;
-
 read_sectors:
-     .main
+     .main:
           mov     di, 0x0005	    ; five retries for error
 
-     .sector_loop
+     .sector_loop:
           push    ax
           push    bx
           push    cx
@@ -64,7 +77,7 @@ read_sectors:
           jnz     .sector_loop	    ; attempt to read again
           int     0x18
 
-     .success
+     .success:
           pop     cx
           pop     bx
           pop     ax
@@ -158,7 +171,7 @@ main:
     ;----------------------------------------------------
     ; Find stage 2
     ;----------------------------------------------------
-	mov	cx, WORD [bqbRootEntries]	; load loop counter
+	mov	cx, WORD [bpbRootEntries]	; load loop counter
 	mov	di, 0x0200			; locate first root directory
     .loop:
 	push	cx
@@ -184,7 +197,7 @@ main:
 
 	; compute the size of FAT in sectors, and store it in CX
 	xor	ax, ax
-	mov	al, BYTES [bpbNumberOfFATs]
+	mov	al, BYTE [bpbNumberOfFATs]
 	mul	WORD [bpbSectorsPerFAT]
 	mov	cx, ax
 
@@ -209,7 +222,7 @@ main:
 	pop	bx
 	call	ClusterLBA		; convert cluster to LBA
 	xor	cx, cx
-	mov	cx, BYTE [bpbSectorsPerCluster]
+	mov	cl, BYTE [bpbSectorsPerCluster]
 	call	read_sectors
 	push	bx
 
@@ -243,34 +256,11 @@ main:
 	retf
 
     failure:
+	mov	si, msgFailure
+	call	print_str
 	mov	ah, 0x00
 	int	0x16	    ; waits for keypress
 	int	0x19	    ; warm boot the computer
-
-	    
-
-
-
-
-	
-
-
-
-	
-
-    load_root:
-	
-	; compute the size of root directory in sectors, and store in CX
-	xor	cx, cx
-	xor	dx, dx
-	mov	al, 0x020		    ; every entry is 32 bytes
-	mul	WORD [bpbRootEntries]	    ; total size of root directory in bytes
-	div	WORD [bpbBytesPerSector]    ; sectors in root directory
-	xchg	ax, cx
-
-
-
-	
 
 absoluteSector db 0x00
 absoluteHead   db 0x00
@@ -279,6 +269,8 @@ absoluteTrack  db 0x00
 datasector  dw 0x0000 
 cluster     dw 0x0000 
 imageName   db "KRNLDR  SYS"
+
+msgFailure  db 0x0D, 0x0A, "ERROR : Press Any Key to Reboot", 0x0A, 0x00
 
 ; Boot Sector magic
 times 510-($-$$) db 0
