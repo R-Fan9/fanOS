@@ -44,6 +44,40 @@ print_str:
         ret
 
 ;************************************************;
+; Convert CHS to LBA
+; LBA = (cluster - 2) * sectors per cluster
+;************************************************;
+
+ClusterLBA:
+          sub     ax, 0x0002	    ; zero base cluster number
+          xor     cx, cx
+          mov     cl, BYTE [bpbSectorsPerCluster]   ; convert byte to word
+          mul     cx
+          add     ax, WORD [datasector]	    ; base data sector
+          ret
+     
+;************************************************;
+; Convert LBA to CHS
+; AX=>LBA Address to convert
+;
+; absolute sector = (logical sector / sectors per track) + 1
+; absolute head   = (logical sector / sectors per track) MOD number of heads
+; absolute track  = logical sector / (sectors per track * number of heads)
+;
+;************************************************;
+
+LBACHS:
+          xor     dx, dx	; prepare dx:ax for operation
+          div     WORD [bpbSectorsPerTrack]	; calculate
+          inc     dl		; adjust for sector 0
+          mov     BYTE [absoluteSector], dl
+          xor     dx, dx	; prepare dx:ax for operation
+          div     WORD [bpbHeadsPerCylinder]    ; calculate
+          mov     BYTE [absoluteHead], dl
+          mov     BYTE [absoluteTrack], al
+          ret
+
+;************************************************;
 ; Reads a series of sectors
 ; CX=>Number of sectors to read
 ; AX=>Starting sector
@@ -86,39 +120,6 @@ read_sectors:
           loop    .main                               ; read next sector
           ret
 
-;************************************************;
-; Convert CHS to LBA
-; LBA = (cluster - 2) * sectors per cluster
-;************************************************;
-
-ClusterLBA:
-          sub     ax, 0x0002	    ; zero base cluster number
-          xor     cx, cx
-          mov     cl, BYTE [bpbSectorsPerCluster]   ; convert byte to word
-          mul     cx
-          add     ax, WORD [datasector]	    ; base data sector
-          ret
-     
-;************************************************;
-; Convert LBA to CHS
-; AX=>LBA Address to convert
-;
-; absolute sector = (logical sector / sectors per track) + 1
-; absolute head   = (logical sector / sectors per track) MOD number of heads
-; absolute track  = logical sector / (sectors per track * number of heads)
-;
-;************************************************;
-
-LBACHS:
-          xor     dx, dx	; prepare dx:ax for operation
-          div     WORD [bpbSectorsPerTrack]	; calculate
-          inc     dl		; adjust for sector 0
-          mov     BYTE [absoluteSector], dl
-          xor     dx, dx	; prepare dx:ax for operation
-          div     WORD [bpbHeadsPerCylinder]    ; calculate
-          mov     BYTE [absoluteHead], dl
-          mov     BYTE [absoluteTrack], al
-          ret
 
 ;*********************************************
 ;	Bootloader Entry Point
@@ -138,7 +139,7 @@ main:
     ;----------------------------------------------------
     ; Create stack
     ;----------------------------------------------------
-    mov	    ax, 0x000
+    mov	    ax, 0x0000
     mov	    ss, ax
     mov	    sp, 0xFFFF
     sti			    ; restore interupts
@@ -151,7 +152,7 @@ main:
 	; compute the size of root directory in sectors, and store it in CX
 	xor	cx, cx
 	xor	dx, dx
-	mov	ax, 0x020		    ; every entry is 32 bytes
+	mov	ax, 0x0020		    ; every entry is 32 bytes
 	mul	WORD [bpbRootEntries]	    ; total size of root directory in bytes
 	div	WORD [bpbBytesPerSector]    ; sectors in root directory
 	xchg	ax, cx
@@ -192,7 +193,7 @@ main:
     load_FAT:
 	
 	; save first cluster of boot image
-	mov	dx, [di+0x001A]	    ; first cluster of every entry is at byte 26
+	mov	dx, WORD [di+0x001A]	    ; first cluster of every entry is at byte 26
 	mov	WORD [cluster], dx
 
 	; compute the size of FAT in sectors, and store it in CX
@@ -246,7 +247,7 @@ main:
 	    shr	    dx, 0x00004		    ; takes the higher 12 bits
 
 	.done:
-	    mov	    WORD[cluster], dx	    ; stores new cluster
+	    mov	    WORD [cluster], dx	    ; stores new cluster
 	    cmp	    dx, 0x0FF0		    ; test end of the file	
 	    jb	    load_image
 	
