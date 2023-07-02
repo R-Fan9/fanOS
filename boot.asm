@@ -1,6 +1,6 @@
 bits 16	    ; 16 bits real mode
 
-org 0
+org 0x0
 
 start:
     jmp     main
@@ -48,11 +48,11 @@ print_str:
 ;************************************************;
 
 ClusterLBA:
-          sub     ax, 0x0002	    ; zero base cluster number
+          sub     ax, 0x0002			    ; zero base cluster number
           xor     cx, cx
           mov     cl, BYTE [bpbSectorsPerCluster]   ; convert byte to word
           mul     cx
-          add     ax, WORD [datasector]	    ; base data sector
+          add     ax, WORD [datasector]		    ; base data sector
           ret
      
 ;************************************************;
@@ -66,11 +66,11 @@ ClusterLBA:
 ;************************************************;
 
 LBACHS:
-          xor     dx, dx	; prepare dx:ax for operation
+          xor     dx, dx			; prepare dx:ax for operation
           div     WORD [bpbSectorsPerTrack]	; calculate
-          inc     dl		; adjust for sector 0
+          inc     dl				; adjust for sector 0
           mov     BYTE [absoluteSector], dl
-          xor     dx, dx	; prepare dx:ax for operation
+          xor     dx, dx			; prepare dx:ax for operation
           div     WORD [bpbHeadsPerCylinder]    ; calculate
           mov     BYTE [absoluteHead], dl
           mov     BYTE [absoluteTrack], al

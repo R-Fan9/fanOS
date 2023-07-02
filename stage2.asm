@@ -1,25 +1,17 @@
+bits 16
 
-;*******************************************************
-;
-;	Stage2.asm
-;		Stage2 Bootloader
-;
-;	OS Development Series
-;*******************************************************
+org 0x0
 
-bits	16
+start:
+    jmp	    main				
 
-org 0x500
-
-jmp	main				; go to start
-
-print:
+print_str:
     lodsb                   ; move next byte from string from SI to AL
     or      al, al          ; check if AL == 0
     jz      .print_done     ; yes - reached the end of the string, done printing
     mov     ah, 0xE         ; no - print the character 
     int     0x10
-    jmp     print
+    jmp     print_str
     
     .print_done:
         ret
@@ -35,20 +27,17 @@ print:
 
 main:
 
-	;-------------------------------;
-	;   Setup segments and stack	;
-	;-------------------------------;
+    ; setup segments and stack
+    cli				; clear interrupts
+    mov	    ax, 0x0050		; null segments
+    mov	    ds, ax
+    mov	    es, ax
 
-	cli				; clear interrupts
-	xor	ax, ax			; null segments
-	mov	ds, ax
-	mov	es, ax
+    mov	    si, msg
+    call    print_str
 
-	mov	si, msg
-	call	print
-
-	sti				; enable interrupts
-	hlt
+    sti				; enable interrupts
+    hlt
 
 ;*************************************************;
 ;   Data section
