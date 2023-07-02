@@ -3,8 +3,7 @@ bits 16	    ; 16 bits real mode
 org 0
 
 start:
-    jmp main
-
+    jmp     main
 
 ;*********************************************
 ;	BIOS Parameter Block
@@ -30,7 +29,7 @@ bsVolumeLabel: 	        DB "MOS FLOPPY "
 bsFileSystem: 	        DB "FAT12   "
 
 ;*********************************************
-;	Print string
+;Print string
 ;*********************************************
 print_str:
     lodsb                   ; move next byte from string from SI to AL
@@ -131,7 +130,7 @@ main:
     ;----------------------------------------------------
     cli			    ; clear interrupts
     mov	    ax, 0x07C0	    ; set up registers to point to our segment
-    mov	    dx, ax
+    mov	    ds, ax
     mov	    es, ax
     mov	    fs, ax
     mov	    gs, ax
