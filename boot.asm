@@ -38,14 +38,13 @@ bsFileSystem: 	        DB "FAT12   "
 ; Convert CHS to LBA
 ; LBA = (cluster - 2) * sectors per cluster
 ;************************************************;
-
 ClusterLBA:
-          sub     ax, 0x0002			    ; zero base cluster number
-          xor     cx, cx
-          mov     cl, BYTE [bpbSectorsPerCluster]   ; convert byte to word
-          mul     cx
-          add     ax, WORD [datasector]		    ; base data sector
-          ret
+     sub     ax, 0x0002				; zero base cluster number
+     xor     cx, cx
+     mov     cl, BYTE [bpbSectorsPerCluster]	; convert byte to word
+     mul     cx
+     add     ax, WORD [datasector]		; base data sector
+     ret
      
 ;************************************************;
 ; Convert LBA to CHS
@@ -56,17 +55,16 @@ ClusterLBA:
 ; absolute track  = logical sector / (sectors per track * number of heads)
 ;
 ;************************************************;
-
 LBACHS:
-          xor     dx, dx			; prepare dx:ax for operation
-          div     WORD [bpbSectorsPerTrack]	; calculate
-          inc     dl				; adjust for sector 0
-          mov     BYTE [absoluteSector], dl
-          xor     dx, dx			; prepare dx:ax for operation
-          div     WORD [bpbHeadsPerCylinder]    ; calculate
-          mov     BYTE [absoluteHead], dl
-          mov     BYTE [absoluteTrack], al
-          ret
+     xor     dx, dx			    ; prepare dx:ax for operation
+     div     WORD [bpbSectorsPerTrack]	    ; calculate
+     inc     dl				    ; adjust for sector 0
+     mov     BYTE [absoluteSector], dl
+     xor     dx, dx			    ; prepare dx:ax for operation
+     div     WORD [bpbHeadsPerCylinder]	    ; calculate
+     mov     BYTE [absoluteHead], dl
+     mov     BYTE [absoluteTrack], al
+     ret
 
 ;************************************************;
 ; Reads a series of sectors
@@ -120,7 +118,6 @@ read_sectors:
 ;	    -Load FAT
 ;	    -Jump to Stage 2
 ;*********************************************
-
 main:
 
     ;----------------------------------------------------

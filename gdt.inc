@@ -46,7 +46,7 @@ gdt_data:
 	db 11001111b        ; granularity
 	db 0                ; base high
 
-end_of_gdt;
+end_of_gdt:
 
 toc: 
     dw end_of_gdt - gdt_data - 1 	; limit (Size of GDT)

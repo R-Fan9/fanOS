@@ -7,9 +7,8 @@ start:
 
 
 ;*******************************************************
-;	Preprocessor directives
+;	preprocessor directives
 ;*******************************************************
-
 %include "stdio.inc"	    ; basic i/o routines
 %include "gdt.inc"	    ; GDT routines
 %include "a20.inc"	    ; Gate A20 routines
@@ -45,7 +44,7 @@ main:
     ;----------------------------------------------------
     ; Enable A20 
     ;----------------------------------------------------
-    call enable_A20_kbrd_out
+    call enable_A20_kbrd
 
     mov	    si, msg
     call    print_str
@@ -58,7 +57,7 @@ main:
     or	    eax, 1
     mov	    cr0, eax
 
-    jmp CODE_DESC:stage_3	; code descriptor is 0x8
+    jmp CODE_DESC:stage3	; code descriptor is 0x8
 
 
 ;*************************************************;
@@ -67,7 +66,7 @@ main:
 
 bits 32
 
-stage_3:
+stage3:
 
     ; set data segments
     mov	    ax, DATA_DESC	; data descriptor ix 0x10
