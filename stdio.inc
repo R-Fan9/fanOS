@@ -14,6 +14,7 @@
 ;************************************************;
 
 bits 16
+
 print_str:
 
     pusha                   ; save registers
@@ -26,10 +27,8 @@ print_str:
         int     0x10
         jmp     .loop
 
-    .print_done
+    .print_done:
         popa                    ; restore registers
         ret
-        
 
-
-%endif ;__STDIO_INC_67343546FDCC56AAB872_INCLUDED__
+%endif 

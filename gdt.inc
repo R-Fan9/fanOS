@@ -14,7 +14,7 @@ bits	16
 ;	- Install GDT
 ;******************************************
 
-install_GDT
+install_GDT:
 	cli                ; clear interrupts
 	pusha              ; save registers
 	lgdt 	[toc]      ; load GDT into GDTR
@@ -46,11 +46,11 @@ gdt_data:
 	db 11001111b        ; granularity
 	db 0                ; base high
 
-end_of_gdt
+end_of_gdt;
 
 toc: 
-	dw end_of_gdt - gdt_data - 1 	; limit (Size of GDT)
-	dd gdt_data 			; base of GDT
+    dw end_of_gdt - gdt_data - 1 	; limit (Size of GDT)
+    dd gdt_data 			; base of GDT
 
 ; give the descriptor offsets name
 
