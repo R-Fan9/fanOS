@@ -28,19 +28,11 @@ bsSerialNumber:	        DD 0xa0a1a2a3
 bsVolumeLabel: 	        DB "MOS FLOPPY "
 bsFileSystem: 	        DB "FAT12   "
 
-;*********************************************
-;Print string
-;*********************************************
-print_str:
-    lodsb                   ; move next byte from string from SI to AL
-    or      al, al          ; check if AL == 0
-    jz      .print_done     ; yes - reached the end of the string, done printing
-    mov     ah, 0xE         ; no - print the character 
-    int     0x10
-    jmp     print_str
-    
-    .print_done:
-        ret
+;*******************************************************
+;	Preprocessor directives
+;*******************************************************
+%include "stdio.inc"	    ; basic i/o routines
+
 
 ;************************************************;
 ; Convert CHS to LBA
@@ -121,8 +113,14 @@ read_sectors:
 
 
 ;*********************************************
-;	Bootloader Entry Point
+;	BOOTLOADER ENTRY POINT
+;
+;	    -Load root directory
+;	    -Find Stage 2 image
+;	    -Load FAT
+;	    -Jump to Stage 2
 ;*********************************************
+
 main:
 
     ;----------------------------------------------------
