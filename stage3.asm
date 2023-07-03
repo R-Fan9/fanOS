@@ -1,12 +1,21 @@
 bits 32
 
-org 0x10000	    ; kernel starts at 1 MB
+org 0x100000	    ; kernel starts at 1 MB
 
 start:
     jmp	    main
 
+
+;*******************************************************
+;	preprocessor directives
+;*******************************************************
 %include "stdio.inc"
 %include "gtd.inc"
+
+
+;*******************************************************
+;	STAGE 3 ENTRY POINT
+;*******************************************************
 
 main:
     

@@ -177,14 +177,14 @@ load_image:
 	
 	; load the cluster
 	mov		ax, WORD [cluster]
-	pop		es		; BX:BP = EX:BX
+	pop		es				; BX:BP = EX:BX
 	pop		bx
 	call	ClusterLBA
-	xor		cx, cx		; setup the number of sectors to read
+	xor		cx, cx			; setup the number of sectors to read
 	mov		cl, bYTE [bpbSectorsPerCluster]
 	call	read_sectors
 	pop		ecx
-	inc		ecx		; add one more sector to counter
+	inc		ecx				; add one more sector to counter
 	push	ecx
 	push	bx
 	push	es
