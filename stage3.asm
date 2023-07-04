@@ -10,7 +10,6 @@ start:
 ;	preprocessor directives
 ;*******************************************************
 %include "stdio.inc"
-%include "gdt.inc"
 
 
 ;*******************************************************
@@ -20,7 +19,7 @@ start:
 main:
     
     ; set up segment registers
-    mov	    ax, DATA_DESC
+    mov	    ax, 0x10
     mov	    ds, ax
     mov	    es, ax
 
@@ -28,8 +27,13 @@ main:
     mov	    ss, ax
     mov	    esp, 0x90000	; stack pointer begins at 0x90000
 
-    mov	    si, msg
-    call    print_str
+
+    ;---------------------------------------;
+    ;   Clear screen and print success
+    ;---------------------------------------;
+    call    ClrScr32
+    mov	    ebx, msg
+    call    Puts32
 
     cli
     hlt
@@ -37,4 +41,5 @@ main:
 ;*************************************************;
 ;   Data section
 ;*************************************************;
-msg	db	"Welcome to 32 bits kernel!", 0
+msg db  0x0A, 0x0A, "                       - OS Development Series -"
+    db  0x0A, 0x0A, "                     MOS 32 Bit Kernel Executing", 0x0A, 0

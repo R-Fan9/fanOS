@@ -33,7 +33,7 @@ main:
     mov	    es, ax
 
     ; setup stack
-    mov	    ax, 0x9000
+    mov	    ax, 0x0
     mov	    ss, ax
     mov	    sp, 0xFFFF
     sti				; enable interrupts
@@ -46,7 +46,13 @@ main:
     ;----------------------------------------------------
     ; Enable A20 
     ;----------------------------------------------------
-    call enable_A20_kbrd
+    call    enable_A20_kbrd
+
+    ;----------------------------------------------------
+    ; Print loading message 
+    ;----------------------------------------------------
+    mov	    si, loadingMsg
+    call    print_str
 
     ;----------------------------------------------------
     ; Load root directory
@@ -57,7 +63,7 @@ main:
     ; Load kernel
     ;----------------------------------------------------
     mov	    ebx, 0	; BX:BP points to buffer to load to
-    mov	    ebp, IMAGE_RMODE_BASE
+    mov	    bp, IMAGE_RMODE_BASE
     mov	    si, imageName
     call    load_image
     mov	    DWORD [imageSize], ecx
@@ -104,8 +110,8 @@ stage3:
 ; Copy kernel to 1MB
 ;----------------------------------------------------
 copy_image:
-    mov	    eax, dword [imageSize]
-    movzx   ebx, word [bpbBytesPerSector]
+    mov	    eax, DWORD [imageSize]
+    movzx   ebx, WORD [bpbBytesPerSector]
     mul	    ebx
     mov	    ebx, 4
     div	    ebx
@@ -113,8 +119,11 @@ copy_image:
     mov	    esi, IMAGE_RMODE_BASE
     mov	    edi, IMAGE_PMODE_BASE
     mov	    ecx, eax
-    rep	    movsd	; copy image to its protected mode address
+    rep	    movsd	; copy image to its protected mode address
     
+    ;----------------------------------------------------
+    ; Execute kernel
+    ;----------------------------------------------------
     jmp    CODE_DESC:IMAGE_PMODE_BASE; execute our kernel!
 
 stop:
@@ -124,8 +133,9 @@ stop:
 ;*************************************************;
 ;   Data section
 ;*************************************************;
-imageName   db "KRNL  SYS"
+imageName   db "KRNL    SYS"
 imageSize   db 0
 
+loadingMsg	db	"Searching for Operating System...", 0
 msgFailure  db 0x0D, 0x0A, "ERROR : Press Any Key to Reboot", 0x0A, 0x00
 

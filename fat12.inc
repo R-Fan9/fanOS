@@ -11,10 +11,13 @@
 bits 16
 
 %include "floppy16.inc"
+%include "stdio.inc"
 
 %define ROOT_OFFSET 0x2E00
 %define FAT_SEG 0x2C0
 %define ROOT_SEG 0x2E0
+
+msgNoImage	db	"Unable to find image...", 0
 
 ;*******************************************
 ; load_root ()
@@ -44,7 +47,7 @@ load_root:
 
 	; load root directory into memory (0x7E00:0000)
 
-	push	ROOT_SEG
+	push	WORD ROOT_SEG
 	pop		es
 	mov		bx, 0
 	call	read_sectors
@@ -75,7 +78,7 @@ load_FAT:
 
 	; read FAT into memory (0x7C00:0000)
 
-	push	FAT_SEG
+	push	WORD FAT_SEG
 	pop		es
 	xor		bx, bx
 	call	read_sectors
@@ -101,14 +104,14 @@ find_image:
 
 	mov		cx, WORD [bpbRootEntries]		; load loop counter
 	mov		di, ROOT_OFFSET					; locate first root directort entrt
-	cld		; clear direction flag
+	cld										; clear direction flag
 
 .loop:
 	push	cx
 	mov		cx, 0x000B		; 11 character name
 	mov		si, bx			; image name is in BX
 	push	di
-	rep	cmpsb				; test if entry matches
+rep	cmpsb				; test if entry matches
 	pop		di
 	je		.found
 	pop		cx
@@ -151,6 +154,8 @@ load_image:
 
 	cmp		ax, -1
 	jne		.load_image_pre
+	mov		si, msgNoImage
+	call	print_str
 	pop		bp
 	pop		bx
 	pop		ecx
@@ -181,7 +186,7 @@ load_image:
 	pop		bx
 	call	ClusterLBA
 	xor		cx, cx			; setup the number of sectors to read
-	mov		cl, bYTE [bpbSectorsPerCluster]
+	mov		cl, BYTE [bpbSectorsPerCluster]
 	call	read_sectors
 	pop		ecx
 	inc		ecx				; add one more sector to counter

@@ -28,12 +28,6 @@ bsSerialNumber:	        DD 0xa0a1a2a3
 bsVolumeLabel: 	        DB "MOS FLOPPY "
 bsFileSystem: 	        DB "FAT12   "
 
-;*******************************************************
-;	Preprocessor directives
-;*******************************************************
-%include "stdio.inc"	    ; basic i/o routines
-
-
 ;************************************************;
 ; Convert CHS to LBA
 ; LBA = (cluster - 2) * sectors per cluster
@@ -251,8 +245,6 @@ main:
 	retf
 
     failure:
-	mov	si, msgFailure
-	call	print_str
 	mov	ah, 0x00
 	int	0x16	    ; waits for keypress
 	int	0x19	    ; warm boot the computer
@@ -267,8 +259,6 @@ absoluteTrack  db 0x00
 datasector  dw 0x0000 
 cluster     dw 0x0000 
 imageName   db "KRNLDR  SYS"
-
-msgFailure  db 0x0D, 0x0A, "ERROR : Press Any Key to Reboot", 0x0A, 0x00
 
 ; Boot Sector magic
 times 510-($-$$) db 0
