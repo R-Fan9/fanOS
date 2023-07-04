@@ -10,7 +10,7 @@ start:
 ;	preprocessor directives
 ;*******************************************************
 %include "stdio.inc"
-%include "gtd.inc"
+%include "gdt.inc"
 
 
 ;*******************************************************

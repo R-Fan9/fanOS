@@ -257,6 +257,9 @@ main:
 	int	0x16	    ; waits for keypress
 	int	0x19	    ; warm boot the computer
 
+;*************************************************;
+;   Data section
+;*************************************************;
 absoluteSector db 0x00
 absoluteHead   db 0x00
 absoluteTrack  db 0x00

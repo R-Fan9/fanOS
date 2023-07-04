@@ -4,7 +4,7 @@ AFLAGS = -f bin
 QEMU = qemu-system-i386 
 QFLAGS = -fda 
 
-OBJECTS=Boot.bin KRNLDR.SYS
+OBJECTS=Boot.bin KRNLDR.SYS KRNL.SYS
 
 bin/OS.bin: $(OBJECTS)
 	dd if=/dev/zero of=bin/OS.bin bs=512   count=2880           # floppy is 2880 sectors of 512 bytes

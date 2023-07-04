@@ -64,7 +64,7 @@ main:
     cmp	    ax, 0
     je	    enter_stage3
     mov	    si, msgFailure
-    call    pritn_str
+    call    print_str
     mov	    ah, 0x0
     int	    0x16	; wait for keypress
     int	    0x19	; warim boot compyter

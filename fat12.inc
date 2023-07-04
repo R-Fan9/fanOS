@@ -163,7 +163,7 @@ load_image:
 
 	; get first cluster
 
-	push	WORD ROOT_SET
+	push	WORD ROOT_SEG
 	pop		es
 	mov		dx, WORD [es:di + 0x001A]		; firster cluster of every entry is a byte 16
 	mov		WORD [cluster], dx
@@ -188,7 +188,7 @@ load_image:
 	push	ecx
 	push	bx
 	push	es
-	mov		ax, FAT_SET		; start reading from FAT
+	mov		ax, FAT_SEG		; start reading from FAT
 	mov		es, ax
 	xor		bx, bx
 
