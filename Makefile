@@ -1,5 +1,5 @@
 AS = nasm
-AFLAGS = -f bin
+AFLAGS = -f bin -i boot/include
 
 QEMU = qemu-system-i386 
 QFLAGS = -fda 
@@ -12,13 +12,13 @@ bin/OS.bin: $(OBJECTS)
 	mcopy -i bin/OS.bin KRNL.SYS \:\:KRNL.SYS
 	mcopy -i bin/OS.bin KRNLDR.SYS \:\:KRNLDR.SYS
 
-KRNL.SYS: stage3.asm
+KRNL.SYS: boot/stage3.asm
 	$(AS) $(AFLAGS) $< -o KRNL.SYS
 
-KRNLDR.SYS: stage2.asm
+KRNLDR.SYS: boot/stage2.asm
 	$(AS) $(AFLAGS) $< -o KRNLDR.SYS
 
-Boot.bin: boot.asm
+Boot.bin: boot/boot.asm
 	$(AS) $(AFLAGS) $< -o Boot.bin
 
 run: bin/OS.bin
