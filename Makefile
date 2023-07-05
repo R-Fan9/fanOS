@@ -4,28 +4,32 @@ AFLAGS = -f bin -i boot/include
 QEMU = qemu-system-i386 
 QFLAGS = -fda 
 
-OBJECTS=Boot.bin KRNLDR.SYS KRNL.SYS
+boot_bin_files = build/Boot.bin build/KRNLDR.SYS build/KRNL.SYS
 
-bin/OS.bin: $(OBJECTS)
+build/KRNL.SYS: boot/stage3.asm
+	mkdir -p $(dir $@)
+	$(AS) $(AFLAGS) $< -o build/KRNL.SYS
+
+build/KRNLDR.SYS: boot/stage2.asm
+	mkdir -p $(dir $@)
+	$(AS) $(AFLAGS) $< -o build/KRNLDR.SYS
+
+build/Boot.bin: boot/boot.asm
+	mkdir -p $(dir $@)
+	$(AS) $(AFLAGS) $< -o build/Boot.bin
+
+bin/OS.bin: $(boot_bin_files)
+	mkdir -p $(dir $@)
 	dd if=/dev/zero of=bin/OS.bin bs=512   count=2880           # floppy is 2880 sectors of 512 bytes
-	dd if=Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc   # Add boot BIN
-	mcopy -i bin/OS.bin KRNL.SYS \:\:KRNL.SYS
-	mcopy -i bin/OS.bin KRNLDR.SYS \:\:KRNLDR.SYS
-
-KRNL.SYS: boot/stage3.asm
-	$(AS) $(AFLAGS) $< -o KRNL.SYS
-
-KRNLDR.SYS: boot/stage2.asm
-	$(AS) $(AFLAGS) $< -o KRNLDR.SYS
-
-Boot.bin: boot/boot.asm
-	$(AS) $(AFLAGS) $< -o Boot.bin
+	dd if=build/Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc   # Add boot BIN
+	mcopy -i bin/OS.bin build/KRNL.SYS \:\:KRNL.SYS
+	mcopy -i bin/OS.bin build/KRNLDR.SYS \:\:KRNLDR.SYS
 
 run: bin/OS.bin
 	$(QEMU) $(QFLAGS) bin/OS.bin
 
 clean:
-	rm -rf bin/* *.bin *.SYS
+	rm -rf bin/* build/* *.bin *.SYS
 
 git:
 	git add -A
