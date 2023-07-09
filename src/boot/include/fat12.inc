@@ -98,7 +98,9 @@ find_image:
 	push	dx
 	push	bx
 	
-	mov		bx, si		; store the image name in BX
+	; store the image name in BX
+
+	mov		bx, si
 
 	; browse root directory for binary image
 

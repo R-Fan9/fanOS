@@ -81,6 +81,9 @@ main:
 ; Enable pmode
 ;----------------------------------------------------
 enter_stage3:
+    mov	    si, msgOSLaunch
+    call    print_str
+
     cli
     mov	    eax, cr0
     or	    eax, 1
@@ -136,6 +139,7 @@ stop:
 imageName   db "KRNL    SYS"
 imageSize   db 0
 
-loadingMsg	db	"Searching for Operating System...", 0
+loadingMsg	db	"Searching for Operating System...", 0x0A, 0x00
+msgOSLaunch	db 0x0D, "Launch x86 Operating System!!!", 0x00
 msgFailure  db 0x0D, 0x0A, "ERROR : Press Any Key to Reboot", 0x0A, 0x00
 

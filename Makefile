@@ -1,25 +1,34 @@
 AS = nasm
 AFLAGS = -f bin -i src/boot/include
 
+CC = gcc
+CFLAGS = -m32 -fno-PIC -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
+			-nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Werror -g -c
+
+LD = ld
+LFLAGS = -m elf_i386
+
 QEMU = qemu-system-i386 
 QFLAGS = -fda 
 
 boot_bin_files = build/Boot.bin build/KRNLDR.SYS build/KRNL.SYS
 
-build/KRNL.SYS: src/boot/stage3.asm
-	mkdir -p $(dir $@)
-	$(AS) $(AFLAGS) $< -o build/KRNL.SYS
+build/kernel.o: src/kernel.c
+	$(CC) $(CFLAGS) $< -o $@
+
+build/stage3.o: src/boot/stage3.asm
+	$(AS) -f elf32 $< -o $@
+
+build/KRNL.SYS: build/stage3.o build/kernel.o
+	$(LD) $(LFLAGS) -o $@ -T target/link.ld $^
 
 build/KRNLDR.SYS: src/boot/stage2.asm
-	mkdir -p $(dir $@)
-	$(AS) $(AFLAGS) $< -o build/KRNLDR.SYS
+	$(AS) $(AFLAGS) $< -o $@
 
 build/Boot.bin: src/boot/boot.asm
-	mkdir -p $(dir $@)
-	$(AS) $(AFLAGS) $< -o build/Boot.bin
+	$(AS) $(AFLAGS) $< -o $@
 
 bin/OS.bin: $(boot_bin_files)
-	mkdir -p $(dir $@)
 	dd if=/dev/zero of=bin/OS.bin bs=512   count=2880           # floppy is 2880 sectors of 512 bytes
 	dd if=build/Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc
 	mcopy -i bin/OS.bin build/KRNL.SYS \:\:KRNL.SYS
