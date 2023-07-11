@@ -31,8 +31,8 @@ build/Boot.bin: src/boot/boot.asm
 bin/OS.bin: $(boot_bin_files)
 	dd if=/dev/zero of=bin/OS.bin bs=512   count=2880           # floppy is 2880 sectors of 512 bytes
 	dd if=build/Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc
-	mcopy -i bin/OS.bin build/KRNL.SYS \:\:KRNL.SYS
 	mcopy -i bin/OS.bin build/KRNLDR.SYS \:\:KRNLDR.SYS
+	mcopy -i bin/OS.bin build/KRNL.SYS \:\:KRNL.SYS
 
 run: bin/OS.bin
 	$(QEMU) $(QFLAGS) bin/OS.bin
