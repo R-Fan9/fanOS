@@ -2,6 +2,7 @@ bin/*
 build/*
 CMakeFiles/
 CMakeCache.txt
+*.json
 *.cmake
 *.bin
 *.SYS
