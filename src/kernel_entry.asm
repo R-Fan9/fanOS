@@ -3,16 +3,16 @@ section .text
 bits 32
 
 global start
-extern kmain
+extern main
 
 start:
-    jmp	    main
+    jmp	    enter_kernel
 
 ;*******************************************************
-;	STAGE 3 ENTRY POINT
+;	KERNEL ENTRY POINT
 ;*******************************************************
 
-main:
+enter_kernel:
     
     ; set up segment registers
     mov	    ax, 0x10
@@ -23,7 +23,7 @@ main:
     mov	    ss, ax
     mov	    esp, 0x90000	; stack pointer begins at 0x90000
     
-    call   kmain
+    call    main
 
     cli
     hlt

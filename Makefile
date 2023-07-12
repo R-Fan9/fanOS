@@ -16,10 +16,10 @@ boot_bin_files = build/Boot.bin build/KRNLDR.SYS build/KRNL.SYS
 build/kernel.o: src/kernel.c
 	$(CC) $(CFLAGS) $< -o $@
 
-build/stage3.o: src/boot/stage3.asm
+build/kernel_entry.o: src/kernel_entry.asm
 	$(AS) -f elf32 $< -o $@
 
-build/KRNL.SYS: build/stage3.o build/kernel.o
+build/KRNL.SYS: build/kernel_entry.o build/kernel.o
 	$(LD) $(LFLAGS) -o $@ -T target/link.ld $^
 
 build/KRNLDR.SYS: src/boot/stage2.asm
@@ -44,3 +44,5 @@ git:
 	git add -A
 	git commit -m "$m"
 	git push
+
+# cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .

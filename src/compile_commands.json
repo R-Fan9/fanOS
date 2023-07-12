@@ -1,0 +1,22 @@
+[
+{
+  "directory": "/home/rfan/code/x86OS/src",
+  "command": "gcc  -I/home/rfan/code/x86OS/src/include -m32 -fno-PIC -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Werror -g -c -o CMakeFiles/KRNL.SYS.dir/CMakeFiles/3.22.1/CompilerIdC/CMakeCCompilerId.c.o -c /home/rfan/code/x86OS/src/CMakeFiles/3.22.1/CompilerIdC/CMakeCCompilerId.c",
+  "file": "/home/rfan/code/x86OS/src/CMakeFiles/3.22.1/CompilerIdC/CMakeCCompilerId.c"
+},
+{
+  "directory": "/home/rfan/code/x86OS/src",
+  "command": "gcc  -I/home/rfan/code/x86OS/src/include -m32 -fno-PIC -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Werror -g -c -o CMakeFiles/KRNL.SYS.dir/include/hal/gdt.c.o -c /home/rfan/code/x86OS/src/include/hal/gdt.c",
+  "file": "/home/rfan/code/x86OS/src/include/hal/gdt.c"
+},
+{
+  "directory": "/home/rfan/code/x86OS/src",
+  "command": "gcc  -I/home/rfan/code/x86OS/src/include -m32 -fno-PIC -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Werror -g -c -o CMakeFiles/KRNL.SYS.dir/kernel.c.o -c /home/rfan/code/x86OS/src/kernel.c",
+  "file": "/home/rfan/code/x86OS/src/kernel.c"
+},
+{
+  "directory": "/home/rfan/code/x86OS/src",
+  "command": "nasm  -I/home/rfan/code/x86OS/src/include -f elf32 -o CMakeFiles/KRNL.SYS.dir/kernel_entry.asm.o -c /home/rfan/code/x86OS/src/kernel_entry.asm",
+  "file": "/home/rfan/code/x86OS/src/kernel_entry.asm"
+}
+]

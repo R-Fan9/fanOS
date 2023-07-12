@@ -1,3 +1,4 @@
+#include "C/stdint.h"
 #include "gdt.h"
 
 void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
