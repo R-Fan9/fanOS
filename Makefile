@@ -1,8 +1,9 @@
 AS = nasm
-AFLAGS = -f bin -i src/boot/include
+ASFLAGS = -f elf32
 
 CC = gcc
-CFLAGS = -m32 -fno-PIC -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
+CINCLUDE = -I src/include
+CFLAGS = $(CINCLUDE) -m32 -fno-PIC -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
 			-nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Werror -g -c
 
 LD = ld
@@ -11,34 +12,39 @@ LFLAGS = -m elf_i386
 QEMU = qemu-system-i386 
 QFLAGS = -fda 
 
-boot_bin_files = build/Boot.bin build/KRNLDR.SYS build/KRNL.SYS
+boot_files := boot/build/Boot.bin boot/build/KRNLDR.SYS
 
-build/kernel.o: src/kernel.c
-	$(CC) $(CFLAGS) $< -o $@
+asm_source_files := $(shell find src/ -name *.asm)
+asm_object_files := $(patsubst src/%.asm, build/%.o, $(asm_source_files))
 
-build/kernel_entry.o: src/kernel_entry.asm
-	$(AS) -f elf32 $< -o $@
+c_source_files := $(shell find src/ -name *.c)
+c_object_files := $(patsubst src/%.c, build/%.o, $(c_source_files))
 
-build/KRNL.SYS: build/kernel_entry.o build/kernel.o
+$(asm_object_files): build/%.o : src/%.asm
+	mkdir -p $(dir $@) && \
+	$(AS) $(ASFLAGS) $(patsubst build/%.o, src/%.asm, $@) -o $@
+
+$(c_object_files): build/%.o : src/%.c
+	mkdir -p $(dir $@) && \
+	$(CC) $(CFLAGS) $(patsubst build/%.o, src/%.c, $@) -o $@
+
+build/KRNL.SYS: $(asm_object_files) $(c_object_files)
 	$(LD) $(LFLAGS) -o $@ -T target/link.ld $^
 
-build/KRNLDR.SYS: src/boot/stage2.asm
-	$(AS) $(AFLAGS) $< -o $@
+$(boot_files):
+	$(MAKE) -C boot all
 
-build/Boot.bin: src/boot/boot.asm
-	$(AS) $(AFLAGS) $< -o $@
-
-bin/OS.bin: $(boot_bin_files)
+bin/OS.bin: $(boot_files) build/KRNL.SYS 
 	dd if=/dev/zero of=bin/OS.bin bs=512   count=2880           # floppy is 2880 sectors of 512 bytes
-	dd if=build/Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc
-	mcopy -i bin/OS.bin build/KRNLDR.SYS \:\:KRNLDR.SYS
+	dd if=boot/build/Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc
+	mcopy -i bin/OS.bin boot/build/KRNLDR.SYS \:\:KRNLDR.SYS
 	mcopy -i bin/OS.bin build/KRNL.SYS \:\:KRNL.SYS
 
 run: bin/OS.bin
 	$(QEMU) $(QFLAGS) bin/OS.bin
 
 clean:
-	rm -rf bin/* build/*
+	rm -rf boot/build/* bin/* build/*
 
 git:
 	git add -A
