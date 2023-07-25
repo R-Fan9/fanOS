@@ -1,6 +1,6 @@
+#include "gdt.h"
 #include "C/stdint.h"
 #include "C/string.h"
-#include "gdt.h"
 
 void gdt_install() { __asm__ volatile("lgdt %0" : : "m"(gdt_ptr)); }
 

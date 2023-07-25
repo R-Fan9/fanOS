@@ -1,8 +1,6 @@
-.cache/*
-bin/*
-build/*
-CMakeFiles/
-CMakeCache.txt
+.cache/
+bin/
+build/
 *.json
 *.cmake
 *.bin
