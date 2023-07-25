@@ -12,7 +12,7 @@ LFLAGS = -m elf_i386
 QEMU = qemu-system-i386 
 QFLAGS = -fda 
 
-boot_files := boot/build/Boot.bin boot/build/KRNLDR.SYS
+bootloader := boot/build/Boot.bin boot/build/KRNLDR.SYS
 
 asm_source_files := $(shell find src/ -name *.asm)
 asm_object_files := $(patsubst src/%.asm, build/%.o, $(asm_source_files))
@@ -31,10 +31,10 @@ $(c_object_files): build/%.o : src/%.c
 build/KRNL.SYS: $(asm_object_files) $(c_object_files)
 	$(LD) $(LFLAGS) -o $@ -T target/link.ld $^
 
-$(boot_files):
+$(bootloader):
 	$(MAKE) -C boot all
 
-bin/OS.bin: $(boot_files) build/KRNL.SYS 
+bin/OS.bin: $(bootloader) build/KRNL.SYS 
 	dd if=/dev/zero of=bin/OS.bin bs=512   count=2880           # floppy is 2880 sectors of 512 bytes
 	dd if=boot/build/Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc
 	mcopy -i bin/OS.bin boot/build/KRNLDR.SYS \:\:KRNLDR.SYS
@@ -50,5 +50,3 @@ git:
 	git add -A
 	git commit -m "$m"
 	git push
-
-# cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .
