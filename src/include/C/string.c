@@ -1,4 +1,5 @@
 #include "string.h"
+
 void *memset(void *buffer, uint8_t byte, uint32_t len) {
   uint8_t *ptr = (uint8_t *)buffer;
 

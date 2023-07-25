@@ -1,5 +1,4 @@
 #include "idt.h"
-#include "C/stdint.h"
 #include "C/string.h"
 
 void idt_install() { __asm__ volatile("lidt %0" : : "m"(idt_ptr)); }
