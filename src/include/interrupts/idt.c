@@ -1,7 +1,7 @@
 #include "idt.h"
 #include "C/string.h"
 
-void idt_install() { __asm__ volatile("lidt %0" : : "m"(idt_ptr)); }
+void idt_install() { __asm__ __volatile__("lidt %0" : : "m"(idt_ptr)); }
 
 void idt_set_descriptor(uint32_t i, uint32_t base, uint16_t flags,
                         uint16_t sel) {

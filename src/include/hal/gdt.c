@@ -1,7 +1,7 @@
 #include "gdt.h"
 #include "C/string.h"
 
-void gdt_install() { __asm__ volatile("lgdt %0" : : "m"(gdt_ptr)); }
+void gdt_install() { __asm__ __volatile__("lgdt %0" : : "m"(gdt_ptr)); }
 
 void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
                         uint8_t access, uint8_t grand) {
