@@ -22,6 +22,6 @@ void send_pic_eoi(uint8_t irq);
 void disable_pic(void);
 void set_irq_mask(uint8_t irq);
 void clear_irq_mask(uint8_t irq);
-void remap_pic(void);
+void pic_init(void);
 
 #endif // !PIC_H

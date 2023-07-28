@@ -14,7 +14,7 @@ void outw(uint16_t port, uint16_t value) {
 uint8_t inb(uint16_t port) {
   uint8_t ret_val;
 
-  __asm__ __volatile__("intb %1, %0" : "=a"(ret_val) : "Nd"(port));
+  __asm__ __volatile__("inb %1, %0" : "=a"(ret_val) : "Nd"(port));
 
   return ret_val;
 }
@@ -23,7 +23,7 @@ uint8_t inb(uint16_t port) {
 uint16_t inw(uint16_t port) {
   uint16_t ret_val;
 
-  __asm__ __volatile__("intb %1, %0" : "=a"(ret_val) : "Nd"(port));
+  __asm__ __volatile__("inw %1, %0" : "=a"(ret_val) : "Nd"(port));
 
   return ret_val;
 }

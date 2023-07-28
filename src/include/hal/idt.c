@@ -1,21 +1,21 @@
 #include "idt.h"
+#include "C/stdint.h"
 #include "C/string.h"
 
 void idt_install() { __asm__ __volatile__("lidt %0" : : "m"(idt_ptr)); }
 
-void idt_set_descriptor(uint32_t i, uint32_t base, uint16_t flags,
-                        uint16_t sel) {
+void idt_set_descriptor(uint32_t i, void *isr, uint16_t flags) {
   if (i > IDT_SIZE) {
     return;
   }
 
   memset((void *)&idt[0], 0, sizeof(struct idt_descriptor));
 
-  idt[i].base_low = base & 0xFFFF;
-  idt[i].selector = sel;
+  idt[i].base_low = (uint32_t)isr & 0xFFFF;
+  idt[i].selector = 0x08;
   idt[i].reserved = 0;
   idt[i].flags = flags;
-  idt[i].base_high = (base >> 16) & 0xFFFF;
+  idt[i].base_high = ((uint32_t)isr >> 16) & 0xFFFF;
 }
 
 int idt_init() {

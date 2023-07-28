@@ -4,12 +4,13 @@
 
 // send "End of Interrupt" command to signal a IRQ has been handled
 void send_pic_eoi(uint8_t irq) {
-  if (irq >= 8)
+  if (irq >= 8) {
     outb(PIC_2_CMD, PIC_EOI);
+  }
   outb(PIC_1_CMD, PIC_EOI);
 }
 
-// disable PIC setting all of its 8 bits by 1
+// disable PIC setting all of its 8 bits to 1
 void disable_pic(void) {
   outb(PIC_1_DATA, 0xFF);
   outb(PIC_2_DATA, 0xFF);
@@ -43,13 +44,13 @@ void clear_irq_mask(uint8_t irq) {
   outb(port, value);
 }
 
-// remap PIC
-void remap_pic(void) {
+// initialize PIC
+void pic_init(void) {
 
   uint8_t pic_1_mask = inb(PIC_1_DATA);
   uint8_t pic_2_mask = inb(PIC_2_DATA);
 
-  // ICW 1 - bit0 = send up to ICW 4, bit 4 = initialize PIC
+  // ICW 1 - bit 0 = send up to ICW 4, bit 4 = initialize PIC
   outb(PIC_1_CMD, 0x11);
 
   // ICW 2 - align with base interrupt in IDT
