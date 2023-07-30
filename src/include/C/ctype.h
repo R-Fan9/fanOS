@@ -9,5 +9,7 @@
 #define CT_WHT 0x20 /* white space */
 #define CT_HEX 0x40 /* hex digit */
 #define CT_SP 0x80  /* hard space */
+#define CT_BSP 0x08 /* back space */
+#define CT_TAB 0x09 /* tab space */
 
 #endif // !CTYPE_H
