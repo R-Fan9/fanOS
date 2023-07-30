@@ -25,7 +25,7 @@ void main(void) {
   clear_irq_mask(0); // enable timer - IRQ0
   
 
-  pit_set_channel_mode_frequency(PIT_OCW_CHANNEL_0, 100, PIT_OCW_MODE_SQUAREWAVEGEN);
+  pit_set_channel_mode_frequency(0, 100, PIT_OCW_MODE_SQUAREWAVEGEN);
 
   char *vga = (char *)0xB8000;
   vga[0] = 'X';

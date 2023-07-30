@@ -1,11 +1,13 @@
 #include "pit.h"
 #include "C/stdint.h"
-#include "hal/pic.h"
 #include "ports/io.h"
+#include "hal/pic.h"
+
+static uint32_t pit_ticks = 0;
 
 void timer_irq0_handler(void) {
 
-  __asm__ __volatile__("add $12, %%esp\n"
+  __asm__ __volatile__("add $12, %esp\n"
                        "pusha\n");
 
   // increment tick count

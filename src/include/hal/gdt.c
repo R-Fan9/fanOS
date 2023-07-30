@@ -1,6 +1,9 @@
 #include "gdt.h"
 #include "C/string.h"
 
+static struct gdt_descriptor gdt[GDT_SIZE];
+static struct gdtr gdt_ptr;
+
 void gdt_install() { __asm__ __volatile__("lgdt %0" : : "m"(gdt_ptr)); }
 
 void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,

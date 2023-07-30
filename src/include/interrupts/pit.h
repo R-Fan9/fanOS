@@ -1,7 +1,7 @@
 #include "C/stdint.h"
 
-#ifndef PIC_H
-#define PIC_H
+#ifndef PIT_H
+#define PIT_H
 
 #define PIT_CMD 0x43
 #define PIT_CHANNEL_0 0x40
@@ -43,8 +43,6 @@
 #define PIT_OCW_CHANNEL_0 0    // 00000000
 #define PIT_OCW_CHANNEL_1 0x40 // 01000000
 #define PIT_OCW_CHANNEL_2 0x80 // 10000000
-
-static uint32_t pit_ticks = 0;
 
 void timer_irq0_handler(void);
 void pit_set_channel_mode_frequency(uint8_t channel, int32_t freq,

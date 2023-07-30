@@ -66,9 +66,6 @@ struct gdtr {
   uint32_t base;
 };
 
-static struct gdt_descriptor gdt[GDT_SIZE];
-static struct gdtr gdt_ptr;
-
 void gdt_install();
 void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
                         uint8_t access, uint8_t grand);

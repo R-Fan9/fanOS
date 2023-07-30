@@ -2,6 +2,9 @@
 #include "C/stdint.h"
 #include "C/string.h"
 
+static struct idt_descriptor idt[IDT_SIZE];
+static struct idtr idt_ptr;
+
 void idt_install() { __asm__ __volatile__("lidt %0" : : "m"(idt_ptr)); }
 
 void idt_set_descriptor(uint32_t i, void *isr, uint16_t flags) {

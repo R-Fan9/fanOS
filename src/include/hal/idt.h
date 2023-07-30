@@ -33,9 +33,6 @@ struct idtr {
   uint32_t base;
 };
 
-static struct idt_descriptor idt[IDT_SIZE];
-static struct idtr idt_ptr;
-
 void idt_install();
 void idt_set_descriptor(uint32_t i, void *isr, uint16_t flags);
 int idt_init();
