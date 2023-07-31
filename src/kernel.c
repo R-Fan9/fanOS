@@ -6,12 +6,12 @@
 #include "hal/pic.h"
 #include "interrupts/pit.h"
 
-uint8_t *logo = "\
+uint8_t *logo = (uint8_t *)"\
     __  _______  _____\n\
    /  |/  / __ \\/ ___/\n\
   / /|_/ / / / /\\__ \\ Microcomputer Operating System \n\
  / /  / / /_/ /___/ / -------------------------------\n\
-/_/  /_/\\____//____/  \n\n";
+/_/  /_/\\____//____/  \n\0";
 
 void main(void) {
   gdt_init();
@@ -39,8 +39,4 @@ void main(void) {
   clear_screen();
 
   print_string(logo);
-
-  // char *vga = (char *)0xB8000;
-  // vga[0] = 'X';
-  // vga[1] = 0x28;
 }

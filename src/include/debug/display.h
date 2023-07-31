@@ -3,11 +3,12 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#define BG_COLOR 0x0
-#define FG_COLOR 0xF
+#define BG_COLOR 0x0    // black
+#define FG_COLOR 0xF    // white
 #define CURSOR_CMD 0x3D4
 #define CURSOR_DATA 0x3D5
 
+void display_cursor();
 void print_char(uint8_t c);
 void print_string(uint8_t *str);
 void clear_screen();

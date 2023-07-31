@@ -8,9 +8,10 @@ static uint8_t cursor_x = 0;
 static uint8_t cursor_y = 0;
 
 uint16_t get_cursor_location() { return cursor_y * 80 + cursor_x; }
+
 uint8_t get_attribute() {
   uint8_t color = (BG_COLOR << 4) | (FG_COLOR & 0x0F);
-  return color << 8;
+  return color;
 }
 
 void display_cursor() {
@@ -27,23 +28,31 @@ void display_cursor() {
   outb(CURSOR_DATA, (uint8_t)cursor_loc);
 }
 
-void position_cursor() {
-
-  if (cursor_x > 80) {
-    cursor_x = 0;
-    cursor_y++;
+void scroll_screen() {
+  if (cursor_y < 25) {
+    return;
   }
 
-  if (cursor_y > 25) {
-    cursor_y = 0;
+  uint8_t attribute = get_attribute();
+
+  for (uint32_t i = 0; i < 80 * 24; i++) {
+    framebuffer[i] = framebuffer[i + 80];
   }
+
+  uint16_t blank = CT_WHT | (attribute << 8);
+  for (uint32_t i = 24 * 80; i < 80 * 25; i++) {
+    framebuffer[i] = blank;
+  }
+
+  cursor_y = 24;
 }
 
 void clear_screen() {
-  uint16_t attribute = get_attribute();
+  uint8_t attribute = get_attribute();
+  uint16_t blank = CT_WHT | (attribute << 8);
 
-  for (uint32_t i = 0; i <= 80 * 25; i++) {
-    framebuffer[i] = CT_WHT | attribute;
+  for (uint32_t i = 0; i < 80 * 25; i++) {
+    framebuffer[i] = blank;
   }
 
   cursor_x = 0;
@@ -52,7 +61,8 @@ void clear_screen() {
 }
 
 void print_char(uint8_t c) {
-  uint16_t attribute = get_attribute();
+
+  uint8_t attribute = get_attribute();
   uint16_t *loc = framebuffer + get_cursor_location();
 
   // back space
@@ -75,11 +85,17 @@ void print_char(uint8_t c) {
   }
   // printable character
   else if (c >= CT_WHT) {
-    *loc = c | attribute;
+    *loc = c | (attribute << 8);
     cursor_x++;
   }
 
-  position_cursor();
+  // move to a new line once exceeded the screen width
+  if (cursor_x >= 80) {
+    cursor_x = 0;
+    cursor_y++;
+  }
+
+  scroll_screen();
   display_cursor();
 }
 
