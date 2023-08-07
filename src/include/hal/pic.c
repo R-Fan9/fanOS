@@ -11,7 +11,7 @@ void send_pic_eoi(uint8_t irq) {
 }
 
 // disable PIC setting all of its 8 bits to 1
-void disable_pic(void) {
+void disable_pic() {
   outb(PIC_1_DATA, 0xFF);
   outb(PIC_2_DATA, 0xFF);
 }
@@ -45,25 +45,26 @@ void clear_irq_mask(uint8_t irq) {
 }
 
 // initialize PIC
-void pic_init(void) {
+void pic_init() {
 
   uint8_t pic_1_mask = inb(PIC_1_DATA);
   uint8_t pic_2_mask = inb(PIC_2_DATA);
 
   // ICW 1 - bit 0 = send up to ICW 4, bit 4 = initialize PIC
   outb(PIC_1_CMD, 0x11);
+  outb(PIC_2_CMD, 0x11);
 
   // ICW 2 - align with base interrupt in IDT
-  outb(PIC_1_DATA, NEW_IRQ_0);
-  outb(PIC_2_DATA, NEW_IRQ_8);
+  outb(PIC_1_DATA, 0x20);
+  outb(PIC_2_DATA, 0x28);
 
   // ICW 3 - map PIC2 to IRQ2
-  outb(PIC_1_DATA, 0x4); // bit # (0 based) - 0100 = bit 2 (IRQ2)
-  outb(PIC_2_DATA, 0x2); // binary # for IRQ in PIC1, 0010 = 0x2 = 2
+  outb(PIC_1_DATA, 0x04); // bit # (0 based) - 0100 = bit 2 (IRQ2)
+  outb(PIC_2_DATA, 0x02); // binary # for IRQ in PIC1, 0010 = 0x2 = 2
 
   // ICW 4 - set x86 mode
-  outb(PIC_1_DATA, 0x1);
-  outb(PIC_2_DATA, 0x1);
+  outb(PIC_1_DATA, 0x01);
+  outb(PIC_2_DATA, 0x01);
 
   // save current masks
   outb(PIC_1_DATA, pic_1_mask);

@@ -28,6 +28,11 @@ void display_cursor() {
   outb(CURSOR_DATA, (uint8_t)cursor_loc);
 }
 
+void position_cursor(uint8_t x, uint8_t y){
+  cursor_x = x;
+  cursor_y = y;
+}
+
 void scroll_screen() {
   if (cursor_y < 25) {
     return;
@@ -103,4 +108,35 @@ void print_string(uint8_t *str) {
   for (; *str != '\0'; str++) {
     print_char(*str);
   }
+}
+
+// void print_hex(uint32_t hex){
+//
+// }
+
+void print_dec(uint32_t num) {
+
+  if (num == 0) {
+    print_char('0');
+    return;
+  }
+
+  uint8_t tmp[32];
+  int32_t snum = num;
+  int32_t i = 0;
+  while (snum > 0) {
+    tmp[i] = '0' + snum % 10;
+    snum /= 10;
+    i++;
+  }
+  tmp[i] = 0;
+
+  uint8_t str[32];
+  str[i--] = 0;
+  int32_t j = 0;
+  while (i >= 0) {
+    str[i--] = tmp[j++];
+  }
+
+  print_string(str);
 }

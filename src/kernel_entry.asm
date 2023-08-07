@@ -6,13 +6,13 @@ global start
 extern main
 
 start:
-    jmp	    enter_kernel
+    jmp	    kernel
 
 ;*******************************************************
 ;	KERNEL ENTRY POINT
 ;*******************************************************
 
-enter_kernel:
+kernel:
     
     ; set up segment registers
     mov	    ax, 0x10

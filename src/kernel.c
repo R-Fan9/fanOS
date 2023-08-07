@@ -5,6 +5,7 @@
 #include "hal/idt.h"
 #include "hal/pic.h"
 #include "interrupts/pit.h"
+#include "interrupts/keyboard.h"
 
 uint8_t *logo = (uint8_t *)"\
     __  _______  _____\n\
@@ -14,13 +15,14 @@ uint8_t *logo = (uint8_t *)"\
 /_/  /_/\\____//____/  \n\0";
 
 void main(void) {
-  gdt_init();
+  // set up Global Descritor Table
+  // gdt_init();
 
   // set up interrupts
   idt_init();
-
+  //
   // TODO - set up exception handlers (i.e, divide by 0, page fault..)
-
+  //
   // mask off all hardware interrupts, disable PIC
   disable_pic();
 
@@ -28,15 +30,22 @@ void main(void) {
   pic_init();
 
   // add ISRs for PIC hardware interrupts
-  idt_set_descriptor(0x20, timer_irq0_handler, INT_GATE_FLAGS);
+  // idt_set_descriptor(0x20, timer_irq0_handler, INT_GATE_FLAGS);
+  idt_set_descriptor(0x21, (uint32_t)keyboard_irq1_handler, INT_GATE_FLAGS);
 
   // enable PIC IRQ interrupts after setting up their descriptors
-  clear_irq_mask(0); // enable timer - IRQ0
+  // clear_irq_mask(0); // enable timer - IRQ
+  clear_irq_mask(1);
 
-  // set system timer mode and frequency
-  pit_set_channel_mode_frequency(0, 100, PIT_OCW_MODE_SQUAREWAVEGEN);
+  // set default PIT Timer IRQ0 rate - ~1000hz
+  // 1193182 MHZ / 1193 = ~1000
+  // pit_set_channel_mode_frequency(0, 1000, PIT_OCW_MODE_RATEGEN);
+
+  // enable all interrupts
+  __asm__ __volatile__("sti");
 
   clear_screen();
-
   print_string(logo);
+  while (1)
+    __asm__("hlt\n\t");
 }

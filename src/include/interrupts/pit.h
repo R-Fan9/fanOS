@@ -44,8 +44,8 @@
 #define PIT_OCW_CHANNEL_1 0x40 // 01000000
 #define PIT_OCW_CHANNEL_2 0x80 // 10000000
 
-void timer_irq0_handler(void);
-void pit_set_channel_mode_frequency(uint8_t channel, int32_t freq,
-                                    uint8_t mode);
+uint32_t get_tick_count();
+void timer_irq0_handler();
+void pit_set_channel_mode_frequency(uint8_t channel, int32_t freq, uint8_t mode);
 
 #endif // !PIC_H
