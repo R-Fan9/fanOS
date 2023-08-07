@@ -10,7 +10,7 @@ LD = ld
 LFLAGS = -m elf_i386
 
 QEMU = qemu-system-i386 
-QFLAGS = -fda 
+QFLAGS = -monitor stdio -fda 
 
 bootloader := boot/build/Boot.bin boot/build/KRNLDR.SYS
 
@@ -42,6 +42,9 @@ bin/OS.bin: $(bootloader) build/KRNL.SYS
 
 run: bin/OS.bin
 	$(QEMU) $(QFLAGS) bin/OS.bin
+
+debug: bin/OS.bin
+	$(QEMU) $(QFLAGS) bin/OS.bin -S -s
 
 clean:
 	rm -rf boot/build/* bin/* build/*
