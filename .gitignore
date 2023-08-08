@@ -1,6 +1,7 @@
 .cache/
 bin/
 build/
+tmp/
 *.json
 *.cmake
 *.bin
