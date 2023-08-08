@@ -1,11 +1,11 @@
 #include "C/ctype.h"
 #include "C/stdint.h"
-#include "debug/display.h"
 #include "hal/gdt.h"
 #include "hal/idt.h"
 #include "hal/pic.h"
-#include "interrupts/pit.h"
 #include "interrupts/keyboard.h"
+#include "interrupts/pit.h"
+#include "debug/display.h"
 
 uint8_t *logo = (uint8_t *)"\
     __  _______  _____\n\
@@ -14,7 +14,7 @@ uint8_t *logo = (uint8_t *)"\
  / /  / / /_/ /___/ / -------------------------------\n\
 /_/  /_/\\____//____/  \n\0";
 
-void main(void) {
+int main(void) {
   // set up Global Descritor Table
   // gdt_init();
 
@@ -48,4 +48,6 @@ void main(void) {
   print_string(logo);
   while (1)
     __asm__("hlt\n\t");
+
+  return 0;
 }
