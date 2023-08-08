@@ -14,7 +14,14 @@ uint8_t *logo = (uint8_t *)"\
  / /  / / /_/ /___/ / -------------------------------\n\
 /_/  /_/\\____//____/  \n\0";
 
-int main(void) {
+int main(void)
+{
+  clear_screen();
+
+  print_dec(1000);
+  print_hex(0xFF);
+  // print_string(logo);
+
   // set up Global Descritor Table
   // gdt_init();
 
@@ -44,8 +51,6 @@ int main(void) {
   // enable all interrupts
   __asm__ __volatile__("sti");
 
-  clear_screen();
-  print_string(logo);
   while (1)
     __asm__("hlt\n\t");
 

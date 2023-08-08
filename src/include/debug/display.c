@@ -28,7 +28,7 @@ void display_cursor() {
   outb(CURSOR_DATA, (uint8_t)cursor_loc);
 }
 
-void position_cursor(uint8_t x, uint8_t y){
+void position_cursor(uint8_t x, uint8_t y) {
   cursor_x = x;
   cursor_y = y;
 }
@@ -110,33 +110,74 @@ void print_string(uint8_t *str) {
   }
 }
 
-// void print_hex(uint32_t hex){
-//
-// }
+void reverse_string(uint8_t last_idx, uint8_t *string) {
+  uint8_t i = last_idx;
+  uint8_t tmp;
+  for (uint8_t j = 0; j < i; j++, i--) {
+    tmp = string[j];
+    string[j] = string[i];
+    string[i] = tmp;
+  }
+}
 
-void print_dec(uint32_t num) {
+void print_hex(uint32_t hex) {
 
+  if (hex == 0) {
+    print_string((uint8_t *)"0x0");
+    return;
+  }
+
+  uint8_t hex_string[80];
+  uint8_t *ascii_numbers = (uint8_t *)"0123456789ABCDEF";
+  uint8_t nibble;
+  uint8_t i = 0;
+
+  while (hex > 0) {
+    // Convert hex values to ascii string
+    nibble = (uint8_t)hex & 0x0F;   // Get lowest 4 bits
+    nibble = ascii_numbers[nibble]; // Hex to ascii
+    hex_string[i] = nibble;         // Move ascii char into string
+    hex >>= 4;                      // Shift right by 4 for next nibble
+    i++;
+  }
+
+  // Add initial "0x" to front of hex string
+  hex_string[i++] = 'x';
+  hex_string[i++] = '0';
+  hex_string[i] = '\0'; // Null terminate string
+
+  i--; // Skip null byte
+  reverse_string(i, hex_string);
+  print_string(hex_string);
+}
+
+void print_dec(int32_t num) {
   if (num == 0) {
     print_char('0');
     return;
   }
 
-  uint8_t tmp[32];
-  int32_t snum = num;
-  int32_t i = 0;
-  while (snum > 0) {
-    tmp[i] = '0' + snum % 10;
-    snum /= 10;
+  uint8_t dec_string[80];
+  uint8_t i = 0;
+  uint8_t negative = 0;
+
+  if (num < 0) {
+    negative = 1; // number is negative
+    num = -num;
+  }
+
+  while (num > 0) {
+    dec_string[i] = (num % 10) + '0'; // Store next digit as ascii
+    num /= 10;                        // Remove last digit
     i++;
   }
-  tmp[i] = 0;
 
-  uint8_t str[32];
-  str[i--] = 0;
-  int32_t j = 0;
-  while (i >= 0) {
-    str[i--] = tmp[j++];
-  }
+  if (negative)
+    dec_string[i++] = '-';
 
-  print_string(str);
+  dec_string[i] = '\0'; // null terminate
+
+  i--;
+  reverse_string(i, dec_string);
+  print_string(dec_string);
 }
