@@ -29,12 +29,14 @@ $(c_object_files): build/%.o : src/%.c
 	$(CC) $(CFLAGS) $(patsubst build/%.o, src/%.c, $@) -o $@
 
 build/KRNL.SYS: $(asm_object_files) $(c_object_files)
+	mkdir -p $(dir $@) && \
 	$(LD) $(LFLAGS) -o $@ -T target/link.ld $^
 
 $(bootloader):
 	$(MAKE) -C boot all
 
 bin/OS.bin: $(bootloader) build/KRNL.SYS 
+	mkdir -p $(dir $@) && \
 	dd if=/dev/zero of=bin/OS.bin bs=512   count=2880           # floppy is 2880 sectors of 512 bytes
 	dd if=boot/build/Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc
 	mcopy -i bin/OS.bin boot/build/KRNLDR.SYS \:\:KRNLDR.SYS
