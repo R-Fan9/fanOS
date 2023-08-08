@@ -3,9 +3,7 @@
 #ifndef GDT_H
 #define GDT_H
 
-#define GDT_SIZE 8192
-
-/***	 gdt descriptor access bit flags.	***/
+#define GDT_SIZE 3
 
 // set access bit
 #define GDT_DESC_ACCESS 0x0001 // 00000001
@@ -27,8 +25,6 @@
 
 // set "in memory" bit
 #define GDT_DESC_MEMORY 0x0080 // 10000000
-
-/**	gdt descriptor grandularity bit flags	***/
 
 // masks out limitHi (High 4 bits of limit)
 #define GDT_GRAND_LIMITHI_MASK 0x0F // 00001111
@@ -56,7 +52,7 @@ struct gdt_descriptor {
 
   // bits 24 - 32 of base address
   uint8_t base_high;
-};
+} __attribute__((packed));
 
 struct gdtr {
   // size of gdt
@@ -64,7 +60,7 @@ struct gdtr {
 
   // base address of gdt
   uint32_t base;
-};
+} __attribute__((packed));
 
 void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
                         uint8_t access, uint8_t grand);

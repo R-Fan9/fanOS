@@ -127,7 +127,7 @@ copy_image:
     ;----------------------------------------------------
     ; Execute kernel
     ;----------------------------------------------------
-    jmp    CODE_DESC:IMAGE_PMODE_BASE; execute our kernel!
+    jmp    CODE_DESC:IMAGE_PMODE_BASE
 
 stop:
     cli

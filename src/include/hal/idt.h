@@ -4,9 +4,9 @@
 #define IDT_H
 
 #define IDT_SIZE 256
-#define TRAP_GATE_FLAGS     0x8F    // P = 1, DPL = 00, S = 0, Type = 1111 (32bit trap gate)
-#define INT_GATE_FLAGS      0x8E    // P = 1, DPL = 00, S = 0, Type = 1110 (32bit interrupt gate)
-#define INT_GATE_USER_FLAGS 0xEE    // P = 1, DPL = 11, S = 0, Type = 1110 (32bit interrupt gate, called from PL 3)
+#define TRAP_GATE_FLAGS 0x8F
+#define INT_GATE_FLAGS 0x8E
+#define INT_GATE_USER_FLAGS 0xEE
 
 struct idt_descriptor {
   // bits 0-16 of interrupt routine (IR) address
@@ -23,7 +23,7 @@ struct idt_descriptor {
 
   // bits 16-32 of IR address
   uint16_t base_high;
-};
+} __attribute__((packed));
 
 struct idtr {
   // size of idt
@@ -31,7 +31,7 @@ struct idtr {
 
   // base address of idt
   uint32_t base;
-};
+} __attribute__((packed));
 
 void idt_set_descriptor(uint32_t i, uint32_t irq, uint16_t flags);
 void idt_init();

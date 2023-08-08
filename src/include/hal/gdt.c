@@ -1,5 +1,6 @@
 #include "gdt.h"
 #include "C/string.h"
+#include "debug/display.h"
 
 static struct gdt_descriptor gdt[GDT_SIZE];
 static struct gdtr gdt_ptr;
@@ -9,8 +10,6 @@ void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
   if (i > GDT_SIZE) {
     return;
   }
-
-  memset((void *)&gdt[i], 0, sizeof(struct gdt_descriptor));
 
   gdt[i].base_low = base & 0xFFFF;
   gdt[i].base_mid = (base >> 16) & 0xFF;
@@ -24,7 +23,7 @@ void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
 void gdt_init() {
 
   // set up gdtr
-  gdt_ptr.limit = (uint16_t)sizeof(gdt);
+  gdt_ptr.limit = sizeof(struct gdt_descriptor) * GDT_SIZE - 1;
   gdt_ptr.base = (uint32_t)&gdt;
 
   // set null descriptor

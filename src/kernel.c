@@ -1,11 +1,11 @@
 #include "C/ctype.h"
 #include "C/stdint.h"
+#include "debug/display.h"
 #include "hal/gdt.h"
 #include "hal/idt.h"
 #include "hal/pic.h"
 #include "interrupts/keyboard.h"
 #include "interrupts/pit.h"
-#include "debug/display.h"
 
 uint8_t *logo = (uint8_t *)"\
     __  _______  _____\n\
@@ -14,22 +14,17 @@ uint8_t *logo = (uint8_t *)"\
  / /  / / /_/ /___/ / -------------------------------\n\
 /_/  /_/\\____//____/  \n\0";
 
-int main(void)
-{
+int main(void) {
   clear_screen();
 
-  print_dec(1000);
-  print_hex(0xFF);
-  // print_string(logo);
-
   // set up Global Descritor Table
-  // gdt_init();
+  gdt_init();
 
   // set up interrupts
   idt_init();
-  //
+
   // TODO - set up exception handlers (i.e, divide by 0, page fault..)
-  //
+
   // mask off all hardware interrupts, disable PIC
   disable_pic();
 
@@ -50,6 +45,8 @@ int main(void)
 
   // enable all interrupts
   __asm__ __volatile__("sti");
+
+  // print_string(logo);
 
   while (1)
     __asm__("hlt\n\t");
