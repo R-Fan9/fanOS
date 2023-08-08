@@ -27,9 +27,9 @@ void idt_init() {
   idt_ptr.limit = sizeof(struct idt_descriptor) * IDT_SIZE - 1;
   idt_ptr.base = (uint32_t)&idt;
 
-  // for (uint16_t entry = 32; entry < IDT_SIZE; entry++) {
-  //   idt_set_descriptor(entry, default_int_handler, INT_GATE_FLAGS);
-  // }
+  for (uint16_t entry = 32; entry < IDT_SIZE; entry++) {
+    idt_set_descriptor(entry, (uint32_t)default_int_handler, INT_GATE_FLAGS);
+  }
 
   __asm__ __volatile__("lidt %0" : : "memory"(idt_ptr));
 }
