@@ -48,5 +48,5 @@ void gdt_init() {
   // set default data descriptor
   gdt_set_descriptor(2, 0, 0xFFFFFFFF, data_seg_access, grand);
 
-  __asm__ __volatile__("lgdt %0" : : "memory"(gdt_ptr));
+  __asm__ __volatile__("lgdt %0" : : "m"(gdt_ptr));
 }

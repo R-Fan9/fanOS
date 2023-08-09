@@ -33,7 +33,7 @@ struct idtr {
   uint32_t base;
 } __attribute__((packed));
 
-void idt_set_descriptor(uint32_t i, uint32_t irq, uint16_t flags);
+void idt_set_descriptor(uint32_t i, void *irq, uint16_t flags);
 void idt_init();
 
 #endif // !IDT_H

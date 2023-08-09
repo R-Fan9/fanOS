@@ -11,16 +11,16 @@ void default_int_handler() {
   print_string((uint8_t *)"DEFAULT INTERRUPT HANDLER");
 }
 
-void idt_set_descriptor(uint32_t i, uint32_t irq, uint16_t flags) {
+void idt_set_descriptor(uint32_t i, void *irq, uint16_t flags) {
   if (i > IDT_SIZE || !irq) {
     return;
   }
 
-  idt[i].base_low = irq & 0xFFFF;
+  idt[i].base_low = (uint32_t)irq & 0xFFFF;
   idt[i].selector = 0x08;
   idt[i].reserved = 0;
   idt[i].flags = (uint8_t)flags;
-  idt[i].base_high = (irq >> 16) & 0xFFFF;
+  idt[i].base_high = ((uint32_t)irq >> 16) & 0xFFFF;
 }
 
 void idt_init() {
@@ -28,8 +28,8 @@ void idt_init() {
   idt_ptr.base = (uint32_t)&idt;
 
   for (uint16_t entry = 32; entry < IDT_SIZE; entry++) {
-    idt_set_descriptor(entry, (uint32_t)default_int_handler, INT_GATE_FLAGS);
+    idt_set_descriptor(entry, default_int_handler, INT_GATE_FLAGS);
   }
 
-  __asm__ __volatile__("lidt %0" : : "memory"(idt_ptr));
+  __asm__ __volatile__("lidt %0" : : "m"(idt_ptr));
 }
