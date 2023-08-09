@@ -33,6 +33,15 @@ struct idtr {
   uint32_t base;
 } __attribute__((packed));
 
+// Interrupt "frame" to pass to interrupt handlers/ISRs
+typedef struct {
+  uint32_t eip;
+  uint32_t cs;
+  uint32_t eflags;
+  uint32_t sp;
+  uint32_t ss;
+} __attribute__((packed)) int_frame_t;
+
 void idt_set_descriptor(uint32_t i, void *irq, uint16_t flags);
 void idt_init();
 
