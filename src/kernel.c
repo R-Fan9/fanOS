@@ -47,6 +47,7 @@ int main(void) {
   __asm__ __volatile__("sti");
 
   while (1) {
+    print_dec(get_tick_count());
     __asm__ __volatile__("hlt\n\t");
   }
   return 0;

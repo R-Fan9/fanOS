@@ -7,6 +7,8 @@
 #define FG_COLOR 0xF // white
 #define CURSOR_CMD 0x3D4
 #define CURSOR_DATA 0x3D5
+#define MAX_ROW 80
+#define MAX_COL 25
 
 void display_cursor();
 void position_cursor(uint8_t x, uint8_t y);

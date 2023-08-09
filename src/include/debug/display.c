@@ -7,7 +7,7 @@ static uint16_t *framebuffer = (uint16_t *)0xB8000;
 static uint8_t cursor_x = 0;
 static uint8_t cursor_y = 0;
 
-uint16_t get_cursor_location() { return cursor_y * 80 + cursor_x; }
+uint16_t get_cursor_location() { return cursor_y * MAX_ROW + cursor_x; }
 
 uint8_t get_attribute() {
   uint8_t color = (BG_COLOR << 4) | (FG_COLOR & 0x0F);
@@ -34,29 +34,29 @@ void position_cursor(uint8_t x, uint8_t y) {
 }
 
 void scroll_screen() {
-  if (cursor_y < 25) {
+  if (cursor_y < MAX_COL) {
     return;
   }
 
   uint8_t attribute = get_attribute();
 
-  for (uint32_t i = 0; i < 80 * 24; i++) {
-    framebuffer[i] = framebuffer[i + 80];
+  for (uint32_t i = 0; i < MAX_ROW * (MAX_COL - 1); i++) {
+    framebuffer[i] = framebuffer[i + MAX_ROW];
   }
 
   uint16_t blank = CT_WHT | (attribute << 8);
-  for (uint32_t i = 24 * 80; i < 80 * 25; i++) {
+  for (uint32_t i = (MAX_COL - 1) * MAX_ROW; i < MAX_ROW * MAX_COL; i++) {
     framebuffer[i] = blank;
   }
 
-  cursor_y = 24;
+  cursor_y = MAX_COL - 1;
 }
 
 void clear_screen() {
   uint8_t attribute = get_attribute();
   uint16_t blank = CT_WHT | (attribute << 8);
 
-  for (uint32_t i = 0; i < 80 * 25; i++) {
+  for (uint32_t i = 0; i < MAX_ROW * MAX_COL; i++) {
     framebuffer[i] = blank;
   }
 
@@ -76,7 +76,7 @@ void print_char(uint8_t c) {
       cursor_x--;
     } else if (cursor_y) {
       cursor_y--;
-      cursor_x = 80 - 1;
+      cursor_x = MAX_ROW - 1;
     }
     loc = framebuffer + get_cursor_location();
     *loc = CT_WHT | (attribute << 8);
@@ -102,7 +102,7 @@ void print_char(uint8_t c) {
   }
 
   // move to a new line once exceeded the screen width
-  if (cursor_x >= 80) {
+  if (cursor_x >= MAX_ROW) {
     cursor_x = 0;
     cursor_y++;
   }
