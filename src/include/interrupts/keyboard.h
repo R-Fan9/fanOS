@@ -5,5 +5,6 @@
 #define KEYBOARD_STATUS 0x64
 
 void keyboard_handler();
+void keyboard_irq1_handler(void);
 
 #endif // KEYBOARD_H
