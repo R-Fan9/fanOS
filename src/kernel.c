@@ -14,6 +14,9 @@ uint8_t *logo = (uint8_t *)"\
  / /  / / /_/ /___/ / -------------------------------\n\
 /_/  /_/\\____//____/  \n\0";
 
+void timer_irq0_handler(void);
+void keyboard_irq1_handler(void);
+
 int main(void) {
   clear_screen();
 
@@ -32,21 +35,24 @@ int main(void) {
   pic_init();
 
   // add ISRs for PIC hardware interrupts
-  // idt_set_descriptor(0x20, (uint32_t)timer_irq0_handler, INT_GATE_FLAGS);
+  idt_set_descriptor(0x20, timer_irq0_handler, INT_GATE_FLAGS);
   idt_set_descriptor(0x21, keyboard_irq1_handler, INT_GATE_FLAGS);
 
   // enable PIC IRQ interrupts after setting up their descriptors
-  // clear_irq_mask(0); // enable timer - IRQ0
+  clear_irq_mask(0); // enable timer - IRQ0
   clear_irq_mask(1); // enable keyboard - IRQ1
 
   // set default PIT Timer IRQ0 rate - ~1000hz
   // 1193182 MHZ / 1193 = ~1000
-  // pit_set_channel_mode_frequency(0, 100, PIT_OCW_MODE_RATEGEN);
+  pit_set_channel_mode_frequency(0, 1000, PIT_OCW_MODE_RATEGEN);
 
   // enable all interrupts
   __asm__ __volatile__("sti");
 
+  print_string((uint8_t *)"Current tick count:\n");
   while (1) {
+    print_dec(get_tick_count());
+    position_cursor(0, 1);
     __asm__ __volatile__("hlt\n\t");
   }
   return 0;

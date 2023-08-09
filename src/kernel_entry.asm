@@ -3,7 +3,11 @@ section .text
 bits 32
 
 global start
+global timer_irq0_handler
+global keyboard_irq1_handler
 extern main
+extern timer_handler
+extern keyboard_handler
 
 start:
     jmp	    kernel
@@ -27,3 +31,19 @@ kernel:
 
     cli
     hlt
+
+timer_irq0_handler:
+    add	    esp, 12
+    pusha
+    call    timer_handler
+    popa
+    iret
+
+keyboard_irq1_handler:
+    add	    esp, 12
+    pusha
+    cli
+    call    keyboard_handler
+    sti
+    popa
+    iret

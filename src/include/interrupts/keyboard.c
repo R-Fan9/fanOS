@@ -5,7 +5,7 @@
 #include "keymap.h"
 #include "ports/io.h"
 
-void keyboard_irq1_handler() {
+void keyboard_handler() {
   uint8_t status = inb(KEYBOARD_STATUS);
   if (status & 0x01) {
     int8_t keycode = inb(KEYBOARD_DATA);
