@@ -3,10 +3,12 @@ section .text
 bits 32
 
 global start
-global timer_irq0_handler
-global keyboard_irq1_handler
 extern main
+
+global timer_irq0_handler
 extern timer_handler
+
+global keyboard_irq1_handler
 extern keyboard_handler
 
 start:

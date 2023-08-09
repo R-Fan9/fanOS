@@ -14,7 +14,6 @@ uint8_t *logo = (uint8_t *)"\
  / /  / / /_/ /___/ / -------------------------------\n\
 /_/  /_/\\____//____/  \n\0";
 
-
 int main(void) {
   clear_screen();
 
@@ -42,7 +41,7 @@ int main(void) {
 
   // set default PIT Timer IRQ0 rate - ~1000hz
   // 1193182 MHZ / 1193 = ~1000
-  pit_set_channel_mode_frequency(0, 10, PIT_OCW_MODE_RATEGEN);
+  pit_set_channel_mode_frequency(0, 1000, PIT_OCW_MODE_RATEGEN);
 
   // enable all interrupts
   __asm__ __volatile__("sti");

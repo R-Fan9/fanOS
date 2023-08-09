@@ -67,13 +67,19 @@ void clear_screen() {
 
 void print_char(uint8_t c) {
 
+  uint16_t *loc;
   uint8_t attribute = get_attribute();
-  uint16_t *loc = framebuffer + get_cursor_location();
 
   // back space
-  if (c == CT_BSP && cursor_x) {
-    *loc = CT_WHT | attribute;
-    cursor_x--;
+  if (c == CT_BSP && (cursor_x || cursor_y)) {
+    if (cursor_x) {
+      cursor_x--;
+    } else if (cursor_y) {
+      cursor_y--;
+      cursor_x = 80 - 1;
+    }
+    loc = framebuffer + get_cursor_location();
+    *loc = CT_WHT | (attribute << 8);
   }
   // tab character
   else if (c == CT_TAB) {
@@ -90,6 +96,7 @@ void print_char(uint8_t c) {
   }
   // printable character
   else if (c >= CT_WHT) {
+    loc = framebuffer + get_cursor_location();
     *loc = c | (attribute << 8);
     cursor_x++;
   }
