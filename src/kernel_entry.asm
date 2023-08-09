@@ -33,17 +33,13 @@ kernel:
     hlt
 
 timer_irq0_handler:
-    add	    esp, 12
-    pusha
+    cli
     call    timer_handler
-    popa
+    sti
     iret
 
 keyboard_irq1_handler:
-    add	    esp, 12
-    pusha
     cli
     call    keyboard_handler
     sti
-    popa
     iret

@@ -44,15 +44,13 @@ int main(void) {
 
   // set default PIT Timer IRQ0 rate - ~1000hz
   // 1193182 MHZ / 1193 = ~1000
-  pit_set_channel_mode_frequency(0, 1000, PIT_OCW_MODE_RATEGEN);
+  pit_set_channel_mode_frequency(0, 10, PIT_OCW_MODE_RATEGEN);
 
   // enable all interrupts
   __asm__ __volatile__("sti");
 
-  print_string((uint8_t *)"Current tick count:\n");
   while (1) {
     print_dec(get_tick_count());
-    position_cursor(0, 1);
     __asm__ __volatile__("hlt\n\t");
   }
   return 0;
