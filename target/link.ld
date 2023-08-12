@@ -1,4 +1,5 @@
 ENTRY(start)                /* the name of the entry label */
+OUTPUT_FORMAT(binary)
 OUTPUT_ARCH(i386)
 
 SECTIONS 

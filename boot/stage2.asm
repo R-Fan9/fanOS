@@ -2,6 +2,12 @@ bits 16
 
 org 0x500
 
+; where the kernel is to be loaded to in protected mode
+%define IMAGE_PMODE_BASE 0x100000
+
+; where the kernel is to be loaded to in real mode
+%define IMAGE_RMODE_BASE 0x3000
+
 start:
     jmp	    main				
 
@@ -9,7 +15,6 @@ start:
 ;*******************************************************
 ;	preprocessor directives
 ;*******************************************************
-%include "common.inc"	    ; common routines
 %include "stdio.inc"	    ; basic i/o routines
 %include "gdt.inc"	    ; GDT routines
 %include "a20.inc"	    ; Gate A20 routines
@@ -138,5 +143,5 @@ imageName   db "KRNL    SYS"
 imageSize   db 0
 
 loadingMsg	db	"Searching for Operating System...", 0x0A, 0x00
-msgFailure db 0x0D, 0x0A, "*** FATAL: Missing or corrupt KRNL32.EXE. Press Any Key to Reboot.", 0x0D, 0x0A, 0x0A, 0x00
+msgFailure db 0x0D, 0x0A, "*** FATAL: Missing or corrupt KRNL.SYS. Press Any Key to Reboot.", 0x0D, 0x0A, 0x0A, 0x00
 
