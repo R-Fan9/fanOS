@@ -14,6 +14,8 @@ uint8_t *logo = (uint8_t *)"\
  / /  / / /_/ /___/ / -------------------------------\n\
 /_/  /_/\\____//____/  \n\0";
 
+void print_physical_memory_info(void);
+
 int main(void) {
   clear_screen();
 
@@ -46,8 +48,36 @@ int main(void) {
   // enable all interrupts
   __asm__ __volatile__("sti");
 
+  print_physical_memory_info();
+
   while (1) {
     __asm__ __volatile__("hlt\n\t");
   }
   return 0;
+}
+
+void print_physical_memory_info(void) {
+
+  typedef struct SMAP_entry {
+    uint64_t base;
+    uint64_t length;
+    uint32_t type;
+    uint32_t acpi;
+  } __attribute__((packed)) SMAP_entry_t;
+
+  uint32_t num_entries = *(uint32_t *)0x1000;
+  SMAP_entry_t *entry = (SMAP_entry_t *)0x1004;
+
+  for (uint32_t i = 0; i < num_entries; i++) {
+    print_string((uint8_t *)"region: ");
+    print_hex(i);
+    print_string((uint8_t *)" start: ");
+    print_hex(entry->base);
+    print_string((uint8_t *)" length: ");
+    print_hex(entry->length);
+    print_string((uint8_t *)" type: ");
+    print_hex(entry->type);
+    print_char('\n');
+    entry++;
+  }
 }
