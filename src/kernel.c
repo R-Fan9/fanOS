@@ -11,6 +11,7 @@
 #define SMAP_ENTRY_COUNT_ADDRESS 0x1000;
 #define SMAP_ENTRY_ADDRESS 0x1004;
 #define KERNEL_SIZE_ADDRESS 0xA500;
+#define MEMAP_ADRESS 0x30000;
 
 uint8_t *logo = (uint8_t *)"\
     __  _______  _____\n\
@@ -25,8 +26,6 @@ typedef struct SMAP_entry {
   uint32_t type;
   uint32_t acpi;
 } __attribute__((packed)) SMAP_entry_t;
-
-void display_mmap_blocks_info();
 
 int main(void) {
   clear_screen();
@@ -46,7 +45,6 @@ int main(void) {
   print_hex(total_memory);
   print_char('\n');
 
-  // kernel size measured in sectors, 512 bytes per sector
   pmmngr_init(0x30000, total_memory);
 
   for (uint32_t i = 0; i < entry_count; i++, entry++) {
@@ -68,7 +66,13 @@ int main(void) {
 
   // deinitialize memory resion where the kernel is in
   pmmngr_deinit_region(0x100000, kernerl_size * 512);
-  display_mmap_blocks_info();
+  print_string((uint8_t *)"\npmm total allocation blocks: ");
+  print_dec(pmmngr_get_block_count());
+  print_string((uint8_t *)"\npmm used blocks: ");
+  print_dec(pmmngr_get_used_block_count());
+  print_string((uint8_t *)"\npmm free blocks: ");
+  print_dec(pmmngr_get_free_block_count());
+  print_string((uint8_t *)"\n\n");
 
   // set up Global Descritor Table
   gdt_init();
@@ -99,19 +103,8 @@ int main(void) {
   // enable interrupts
   __asm__ __volatile__("sti");
 
-
   while (1) {
     __asm__ __volatile__("hlt\n\t");
   }
   return 0;
-}
-
-void display_mmap_blocks_info() {
-  print_string((uint8_t *)"\npmm total allocation blocks: ");
-  print_dec(pmmngr_get_block_count());
-  print_string((uint8_t *)"\npmm used blocks: ");
-  print_dec(pmmngr_get_used_block_count());
-  print_string((uint8_t *)"\npmm free blocks: ");
-  print_dec(pmmngr_get_free_block_count());
-  print_string((uint8_t *)"\n\n");
 }
