@@ -11,7 +11,6 @@
 #define SMAP_ENTRY_COUNT_ADDRESS 0x1000;
 #define SMAP_ENTRY_ADDRESS 0x1004;
 #define KERNEL_SIZE_ADDRESS 0xA500;
-#define MEMAP_ADRESS 0x30000;
 
 uint8_t *logo = (uint8_t *)"\
     __  _______  _____\n\
@@ -64,8 +63,12 @@ int main(void) {
     }
   }
 
-  // deinitialize memory resion where the kernel is in
+  // deinitialize memory region where the kernel is in
   pmmngr_deinit_region(0x100000, kernerl_size * 512);
+
+  // deinitialize memory region where the memory map is in
+  pmmngr_deinit_region(0x30000, pmmngr_get_block_count() / BLOCKS_PER_BYTE);
+
   print_string((uint8_t *)"\npmm total allocation blocks: ");
   print_dec(pmmngr_get_block_count());
   print_string((uint8_t *)"\npmm used blocks: ");
