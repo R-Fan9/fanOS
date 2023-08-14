@@ -6,6 +6,11 @@
 #include "hal/pic.h"
 #include "interrupts/keyboard.h"
 #include "interrupts/pit.h"
+#include "memory/phyical_mmgnr.h"
+
+#define SMAP_ENTRY_COUNT_ADDRESS 0x1000;
+#define SMAP_ENTRY_ADDRESS 0x1004;
+#define KERNEL_SIZE_ADDRESS 0xA500;
 
 uint8_t *logo = (uint8_t *)"\
     __  _______  _____\n\
@@ -14,7 +19,14 @@ uint8_t *logo = (uint8_t *)"\
  / /  / / /_/ /___/ / -------------------------------\n\
 /_/  /_/\\____//____/  \n\0";
 
-void print_physical_memory_info(void);
+typedef struct SMAP_entry {
+  uint64_t base;
+  uint64_t size;
+  uint32_t type;
+  uint32_t acpi;
+} __attribute__((packed)) SMAP_entry_t;
+
+void display_mmap_blocks_info();
 
 int main(void) {
   clear_screen();
@@ -22,7 +34,7 @@ int main(void) {
   // set up Global Descritor Table
   gdt_init();
 
-  // set up interrupts
+  // set up Interrupt Descritor Table
   idt_init();
 
   // TODO - set up exception handlers (i.e, divide by 0, page fault..)
@@ -45,10 +57,50 @@ int main(void) {
   // 1193182 MHZ / 1193 = ~1000
   pit_set_channel_mode_frequency(0, 1000, PIT_OCW_MODE_RATEGEN);
 
-  // enable all interrupts
+  // enable interrupts
   __asm__ __volatile__("sti");
 
-  print_physical_memory_info();
+  uint32_t kernerl_size = *(uint32_t *)KERNEL_SIZE_ADDRESS;
+  print_string((uint8_t *)"kernel size: ");
+  print_dec(kernerl_size);
+  print_string((uint8_t *)" sectors, ");
+  print_dec(kernerl_size * 512);
+  print_string((uint8_t *)" bytes\n\n");
+
+  uint32_t entry_count = *(uint32_t *)SMAP_ENTRY_COUNT_ADDRESS;
+  SMAP_entry_t *entry = (SMAP_entry_t *)SMAP_ENTRY_ADDRESS;
+  SMAP_entry_t *last_entry = entry + entry_count - 1;
+  uint32_t total_memory = last_entry->base + last_entry->size - 1;
+
+  // kernel size measured in sectors, 512 bytes per sector
+  pmmngr_init(0x100000 + kernerl_size * 512, total_memory);
+  display_mmap_blocks_info();
+
+  for (uint32_t i = 0; i < entry_count; i++, entry++) {
+    print_string((uint8_t *)"region: ");
+    print_dec(i);
+    print_string((uint8_t *)" start: ");
+    print_hex(entry->base);
+    print_string((uint8_t *)" size: ");
+    print_hex(entry->size);
+    print_string((uint8_t *)" type: ");
+    print_dec(entry->type);
+    print_char('\n');
+
+    // entry with type 1 indicates the memory region is available
+    if (entry->type == 1) {
+      pmmngr_init_region(entry->base, entry->size);
+      display_mmap_blocks_info();
+    }
+  }
+
+  print_string((uint8_t *)"Total memory: ");
+  print_hex(total_memory);
+  print_char('\n');
+
+  // deinitialize memory resion where the kernel is in
+  pmmngr_deinit_region(0x100000, kernerl_size * 512);
+  display_mmap_blocks_info();
 
   while (1) {
     __asm__ __volatile__("hlt\n\t");
@@ -56,28 +108,12 @@ int main(void) {
   return 0;
 }
 
-void print_physical_memory_info(void) {
-
-  typedef struct SMAP_entry {
-    uint64_t base;
-    uint64_t length;
-    uint32_t type;
-    uint32_t acpi;
-  } __attribute__((packed)) SMAP_entry_t;
-
-  uint32_t num_entries = *(uint32_t *)0x1000;
-  SMAP_entry_t *entry = (SMAP_entry_t *)0x1004;
-
-  for (uint32_t i = 0; i < num_entries; i++) {
-    print_string((uint8_t *)"region: ");
-    print_hex(i);
-    print_string((uint8_t *)" start: ");
-    print_hex(entry->base);
-    print_string((uint8_t *)" length: ");
-    print_hex(entry->length);
-    print_string((uint8_t *)" type: ");
-    print_hex(entry->type);
-    print_char('\n');
-    entry++;
-  }
+void display_mmap_blocks_info() {
+  print_string((uint8_t *)"\npmm total allocation blocks: ");
+  print_dec(pmmngr_get_block_count());
+  print_string((uint8_t *)"\npmm used blocks: ");
+  print_dec(pmmngr_get_used_block_count());
+  print_string((uint8_t *)"\npmm free blocks: ");
+  print_dec(pmmngr_get_free_block_count());
+  print_string((uint8_t *)"\n\n");
 }

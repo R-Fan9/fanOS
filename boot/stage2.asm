@@ -44,10 +44,10 @@ main:
     ;----------------------------------------------------
     ; Get memory map 
     ;----------------------------------------------------
-    memmap_entries equ 0x1000       ; store number of memory map entries here
-    mov     di, 0x1004
+    memmap_entry_count equ 0x1000       ; store # of memory map entries here
+    mov     di, 0x1004			; store memory map entries here
     call    get_memory_map
-    mov     [memmap_entries], bp    ; store # of memory map entries when done
+    mov     [memmap_entry_count], bp    ; store # of memory map entries when done
 
     ;----------------------------------------------------
     ; Install GDT 
@@ -62,7 +62,7 @@ main:
     ;----------------------------------------------------
     ; Print loading message 
     ;----------------------------------------------------
-    mov	    si, loadingMsg
+    mov	    si, loading_msg
     call    print_str
 
     ;----------------------------------------------------
@@ -75,12 +75,12 @@ main:
     ;----------------------------------------------------
     mov	    ebx, 0	; BX:BP points to buffer to load to
     mov	    bp, IMAGE_RMODE_BASE
-    mov	    si, imageName
+    mov	    si, image_name
     call    load_image
-    mov	    DWORD [imageSize], ecx
+    mov	    DWORD [image_size], ecx
     cmp	    ax, 0
     je	    enter_stage3
-    mov	    si, msgFailure
+    mov	    si, failure_msg
     call    print_str
     mov	    ah, 0x0
     int	    0x16	; wait for keypress
@@ -122,7 +122,8 @@ stage3:
 ; Copy kernel to 1MB
 ;----------------------------------------------------
 copy_image:
-    mov	    eax, DWORD [imageSize]
+    mov	    eax, DWORD [image_size]
+    mov	    [0xA500], eax	; move the value of kernel image size to address 0xA500
     movzx   ebx, WORD [bpbBytesPerSector]
     mul	    ebx
     mov	    ebx, 4
@@ -131,7 +132,7 @@ copy_image:
     mov	    esi, IMAGE_RMODE_BASE
     mov	    edi, IMAGE_PMODE_BASE
     mov	    ecx, eax
-    rep	    movsd	; copy image to its protected mode address
+    rep	    movsd		; copy image to its protected mode address
     
     ;----------------------------------------------------
     ; Execute kernel
@@ -145,9 +146,9 @@ stop:
 ;*************************************************;
 ;   Data section
 ;*************************************************;
-imageName   db "KRNL    SYS"
-imageSize   db 0
+image_name   db "KRNL    SYS"
+image_size   db 0
 
-loadingMsg	db	"Searching for Operating System...", 0x0A, 0x00
-msgFailure db 0x0D, 0x0A, "*** FATAL: Missing or corrupt KRNL.SYS. Press Any Key to Reboot.", 0x0D, 0x0A, 0x0A, 0x00
+loading_msg	db	"Searching for Operating System...", 0x0A, 0x00
+failure_msg db 0x0D, 0x0A, "*** FATAL: Missing or corrupt KRNL.SYS. Press Any Key to Reboot.", 0x0D, 0x0A, 0x0A, 0x00
 

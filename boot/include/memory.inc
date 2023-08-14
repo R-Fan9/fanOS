@@ -15,12 +15,12 @@ bits 16
 ;	/ret bp=entry count
 ;---------------------------------------------
 
-get_memory_map:
+get_memory_map
 	xor		ebx, ebx
 	xor		bp, bp					; number of entries stored here
 	mov		edx, 'PAMS'				; 'SMAP'
 	mov		eax, 0xE820
-	mov		[es:di + 20], DWORD 1
+	mov		[es:di + 20], DWORD 1	; force a valie ACPI 3.x entry
 	mov		ecx, 24					; memory map entry struct is 24 bytes
 	int		0x15					; get first entry
 	jc		.error
@@ -57,6 +57,7 @@ get_memory_map:
 
 .error:
 	stc
+	ret
 
 .done:
 	clc

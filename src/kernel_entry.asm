@@ -28,7 +28,7 @@ kernel:
     ; set up stack
     mov	    ss, ax
     mov	    esp, 0x90000	; stack pointer begins at 0x90000
-    
+
     call    main
 
     cli

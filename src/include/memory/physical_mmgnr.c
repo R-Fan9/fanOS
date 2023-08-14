@@ -1,0 +1,141 @@
+#include "C/stdbool.h"
+#include "C/stdint.h"
+#include "C/string.h"
+#include "debug/display.h"
+#include "phyical_mmgnr.h"
+
+// size of physical memory
+static uint32_t memory_size = 0;
+
+// number of blocks currently used
+static uint32_t used_blocks = 0;
+
+// maximum number of available mmemory blocks
+static uint32_t max_blocks = 0;
+
+// memory map bit array, each bit represetns a memory block (1 - allocated, 0 -
+// available)
+static uint32_t *memory_map = 0;
+
+void mmap_set(uint32_t bit);
+void mmap_unset(uint32_t bit);
+uint8_t mmap_test(uint32_t bit);
+int32_t mmap_first_free_blocks(uint32_t blocks);
+
+void mmap_set(uint32_t bit) { memory_map[bit / 32] |= (1 << (bit % 32)); }
+
+void mmap_unset(uint32_t bit) { memory_map[bit / 32] &= ~(1 << (bit % 32)); }
+
+uint8_t mmap_test(uint32_t bit) {
+  return memory_map[bit / 32] & (1 << (bit % 32));
+}
+
+int32_t mmap_first_free_blocks(uint32_t blocks) {
+  if (blocks == 0) {
+    return -1;
+  }
+
+  for (uint32_t i = 0; i < pmmngr_get_block_count() / 32; i++) {
+    if (memory_map[i] != 0xFFFFFFFF) {
+      for (uint32_t j = 0; j < 32; j++) {
+        uint32_t bit = (1 << j);
+        if (!(memory_map[i] & bit)) {
+
+          uint32_t start_bit = i * 32 + bit;
+          uint32_t free_blocks = 0;
+
+          for (uint32_t count = 0; count <= blocks; count++) {
+            if (!mmap_test(start_bit + count)) {
+              free_blocks++;
+            }
+
+            if (free_blocks == blocks) {
+              return i * 32 + j;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return -1;
+}
+
+void pmmngr_init(uint32_t start_address, uint32_t size) {
+  memory_map = (uint32_t *)start_address;
+  memory_size = size;
+  max_blocks = pmmngr_get_memory_size() / BLOCK_SIZE;
+  used_blocks = pmmngr_get_block_count();
+
+  // by default, set all memory in use (used blocks = 1)
+  // each byte of memory map holds 8 blocks
+  memset(memory_map, 0xFF, pmmngr_get_block_count() / BLOCKS_PER_BYTE);
+}
+
+// initialize region of memory (set blocks free/available)
+void pmmngr_init_region(uint32_t base, uint32_t size) {
+  int32_t align = base / BLOCK_SIZE;
+  int32_t blocks = size / BLOCK_SIZE;
+
+  for (; blocks > 0; blocks--) {
+    mmap_unset(align++);
+    used_blocks--;
+  }
+
+  // first block is always set, which insures allocs cant be 0
+  mmap_set(0);
+}
+
+// deinitialize region of memory (set blocks used/reserved)
+void pmmngr_deinit_region(uint32_t base, uint32_t size) {
+  int32_t align = base / BLOCK_SIZE;
+  int32_t blocks = size / BLOCK_SIZE;
+
+  for (; blocks > 0; blocks--) {
+    mmap_set(align++);
+    used_blocks++;
+  }
+}
+
+uint32_t *pmmngr_alloc_block() { return pmmngr_alloc_blocks(1); }
+
+uint32_t *pmmngr_alloc_blocks(uint32_t blocks) {
+
+  // not enough blocks to allocate
+  if (pmmngr_get_free_block_count() <= blocks) {
+    return 0;
+  }
+  int32_t starting_block = mmap_first_free_blocks(blocks);
+
+  // out of memory
+  if (starting_block == -1) {
+    return 0;
+  }
+
+  for (uint32_t i = 0; i < blocks; i++) {
+    mmap_set(starting_block + i);
+  }
+
+  used_blocks += blocks;
+
+  // convert blocks to bytes to get start of actual RAM that is now allocated
+  uint32_t address = starting_block * BLOCK_SIZE;
+  return (uint32_t *)address;
+}
+
+void pmmngr_free_block(uint32_t *address) { pmmngr_free_blocks(address, 1); }
+
+void pmmngr_free_blocks(uint32_t *address, uint32_t blocks) {
+  uint32_t starting_block = (uint32_t)address / BLOCK_SIZE;
+
+  for (uint32_t i = 0; i < blocks; i++) {
+    mmap_unset(starting_block + i);
+  }
+
+  used_blocks -= blocks;
+}
+
+uint32_t pmmngr_get_memory_size() { return memory_size; }
+uint32_t pmmngr_get_block_count() { return max_blocks; }
+uint32_t pmmngr_get_used_block_count() { return used_blocks; }
+uint32_t pmmngr_get_free_block_count() { return max_blocks - used_blocks; }
