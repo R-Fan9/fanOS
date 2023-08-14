@@ -31,6 +31,45 @@ void display_mmap_blocks_info();
 int main(void) {
   clear_screen();
 
+  uint32_t kernerl_size = *(uint32_t *)KERNEL_SIZE_ADDRESS;
+  print_string((uint8_t *)"kernel size: ");
+  print_dec(kernerl_size);
+  print_string((uint8_t *)" sectors, ");
+  print_dec(kernerl_size * 512);
+  print_string((uint8_t *)" bytes\n\n");
+
+  uint32_t entry_count = *(uint32_t *)SMAP_ENTRY_COUNT_ADDRESS;
+  SMAP_entry_t *entry = (SMAP_entry_t *)SMAP_ENTRY_ADDRESS;
+  SMAP_entry_t *last_entry = entry + entry_count - 1;
+  uint32_t total_memory = last_entry->base + last_entry->size - 1;
+  print_string((uint8_t *)"Total memory: ");
+  print_hex(total_memory);
+  print_char('\n');
+
+  // kernel size measured in sectors, 512 bytes per sector
+  pmmngr_init(0x30000, total_memory);
+
+  for (uint32_t i = 0; i < entry_count; i++, entry++) {
+    print_string((uint8_t *)"region: ");
+    print_dec(i);
+    print_string((uint8_t *)" start: ");
+    print_hex(entry->base);
+    print_string((uint8_t *)" size: ");
+    print_hex(entry->size);
+    print_string((uint8_t *)" type: ");
+    print_dec(entry->type);
+    print_char('\n');
+
+    // entry with type 1 indicates the memory region is available
+    if (entry->type == 1) {
+      pmmngr_init_region(entry->base, entry->size);
+    }
+  }
+
+  // deinitialize memory resion where the kernel is in
+  pmmngr_deinit_region(0x100000, kernerl_size * 512);
+  display_mmap_blocks_info();
+
   // set up Global Descritor Table
   gdt_init();
 
@@ -60,47 +99,6 @@ int main(void) {
   // enable interrupts
   __asm__ __volatile__("sti");
 
-  uint32_t kernerl_size = *(uint32_t *)KERNEL_SIZE_ADDRESS;
-  print_string((uint8_t *)"kernel size: ");
-  print_dec(kernerl_size);
-  print_string((uint8_t *)" sectors, ");
-  print_dec(kernerl_size * 512);
-  print_string((uint8_t *)" bytes\n\n");
-
-  uint32_t entry_count = *(uint32_t *)SMAP_ENTRY_COUNT_ADDRESS;
-  SMAP_entry_t *entry = (SMAP_entry_t *)SMAP_ENTRY_ADDRESS;
-  SMAP_entry_t *last_entry = entry + entry_count - 1;
-  uint32_t total_memory = last_entry->base + last_entry->size - 1;
-
-  // kernel size measured in sectors, 512 bytes per sector
-  pmmngr_init(0x100000 + kernerl_size * 512, total_memory);
-  display_mmap_blocks_info();
-
-  for (uint32_t i = 0; i < entry_count; i++, entry++) {
-    print_string((uint8_t *)"region: ");
-    print_dec(i);
-    print_string((uint8_t *)" start: ");
-    print_hex(entry->base);
-    print_string((uint8_t *)" size: ");
-    print_hex(entry->size);
-    print_string((uint8_t *)" type: ");
-    print_dec(entry->type);
-    print_char('\n');
-
-    // entry with type 1 indicates the memory region is available
-    if (entry->type == 1) {
-      pmmngr_init_region(entry->base, entry->size);
-      display_mmap_blocks_info();
-    }
-  }
-
-  print_string((uint8_t *)"Total memory: ");
-  print_hex(total_memory);
-  print_char('\n');
-
-  // deinitialize memory resion where the kernel is in
-  pmmngr_deinit_region(0x100000, kernerl_size * 512);
-  display_mmap_blocks_info();
 
   while (1) {
     __asm__ __volatile__("hlt\n\t");

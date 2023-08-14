@@ -11,6 +11,8 @@ void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
     return;
   }
 
+  memset(&gdt[i], 0, sizeof(struct gdt_descriptor));
+
   gdt[i].base_low = base & 0xFFFF;
   gdt[i].base_mid = (base >> 16) & 0xFF;
   gdt[i].base_high = (base >> 24) & 0xFF;

@@ -27,6 +27,8 @@ void idt_init() {
   idt_ptr.limit = sizeof(struct idt_descriptor) * IDT_SIZE - 1;
   idt_ptr.base = (uint32_t)&idt;
 
+  memset((void *)&idt, 0, sizeof(struct idt_descriptor) * IDT_SIZE - 1);
+
   for (uint16_t entry = 32; entry < IDT_SIZE; entry++) {
     idt_set_descriptor(entry, default_int_handler, INT_GATE_FLAGS);
   }
