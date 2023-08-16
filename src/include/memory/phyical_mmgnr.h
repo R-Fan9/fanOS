@@ -3,6 +3,8 @@
 #ifndef PMM_H
 #define PMM_H
 
+typedef uint32_t physical_addr ;
+
 // 8 blocks per byte
 #define BLOCKS_PER_BYTE 8
 
@@ -12,13 +14,13 @@
 // block alignment
 #define BLOCK_ALIGN PMMNGR_BLOCK_SIZE
 
-void pmmngr_init(uint32_t start_address, uint32_t size);
-void pmmngr_init_region(uint32_t base, uint32_t size);
-void pmmngr_deinit_region(uint32_t base, uint32_t size);
-uint32_t *pmmngr_alloc_block();
-uint32_t *pmmngr_alloc_blocks(uint32_t blocks);
-void pmmngr_free_block(uint32_t *address);
-void pmmngr_free_blocks(uint32_t *address, uint32_t blocks);
+void pmmngr_init(physical_addr start_address, uint32_t size);
+void pmmngr_init_region(physical_addr base, uint32_t size);
+void pmmngr_deinit_region(physical_addr base, uint32_t size);
+physical_addr *pmmngr_alloc_block();
+physical_addr *pmmngr_alloc_blocks(uint32_t blocks);
+void pmmngr_free_block(physical_addr *address);
+void pmmngr_free_blocks(physical_addr *address, uint32_t blocks);
 uint32_t pmmngr_get_memory_size();
 uint32_t pmmngr_get_block_count();
 uint32_t pmmngr_get_used_block_count();
