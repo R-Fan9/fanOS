@@ -51,6 +51,9 @@ void vmmngr_flush_tlb_entry(virtual_addr addr);
 // map physical address to vitrual address
 void vmmngr_map_page(physical_addr *phys_addr, virtual_addr *virt_addr);
 
+// unmap physical address from vitrual address
+void vmmngr_unmap_page(virtual_addr *addr);
+
 // initalize VMM
 void vmmngr_init();
 
