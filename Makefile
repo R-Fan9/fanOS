@@ -3,8 +3,7 @@ ASFLAGS = -f elf32
 
 CC = gcc
 CINCLUDE = -I src/include
-CFLAGS = $(CINCLUDE) -m32 -fno-PIC -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
-			-nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Werror -g -c
+CFLAGS = $(CINCLUDE) -std=c17 -m32 -march=i386 -mgeneral-regs-only -ffreestanding -fno-stack-protector -fno-builtin -nostdinc -nostartfiles -nodefaultlibs -fno-PIC -fno-pie -Wall -Wextra -Wno-pointer-sign -Wno-interrupt-service-routine -g -c
 
 LD = ld
 LFLAGS = -m elf_i386

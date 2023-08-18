@@ -1,4 +1,5 @@
 #include "C/stdint.h"
+#include "hal/idt.h"
 
 #ifndef PIT_H
 #define PIT_H
@@ -44,9 +45,7 @@
 #define PIT_OCW_CHANNEL_1 0x40 // 01000000
 #define PIT_OCW_CHANNEL_2 0x80 // 10000000
 
-void timer_handler();
-void timer_irq0_handler(void);
-
+__attribute__((interrupt)) void timer_irq0_handler(int_frame_t *frame);
 uint32_t get_tick_count();
 void pit_set_channel_mode_frequency(uint8_t channel, int32_t freq,
                                     uint8_t mode);

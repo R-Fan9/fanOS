@@ -5,12 +5,6 @@ bits 32
 global start
 extern main
 
-global timer_irq0_handler
-extern timer_handler
-
-global keyboard_irq1_handler
-extern keyboard_handler
-
 start:
     jmp	    kernel
 
@@ -33,15 +27,3 @@ kernel:
 
     cli
     hlt
-
-timer_irq0_handler:
-    cli
-    call    timer_handler
-    sti
-    iret
-
-keyboard_irq1_handler:
-    cli
-    call    keyboard_handler
-    sti
-    iret

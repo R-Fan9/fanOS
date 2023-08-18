@@ -8,7 +8,8 @@ static uint32_t pit_ticks = 0;
 
 uint32_t get_tick_count() { return pit_ticks; }
 
-void timer_handler() {
+__attribute__((interrupt)) void timer_irq0_handler(int_frame_t *frame) {
+  (void)frame;
   pit_ticks++;
   send_pic_eoi(0);
 }
