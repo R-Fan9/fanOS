@@ -5,7 +5,6 @@
 __attribute__((interrupt)) void page_fault_handler(int_frame_t *frame,
                                                    uint32_t error_code) {
   (void)frame;
-  (void)error_code;
 
   print_string((uint8_t *)"PAGE FAULT EXCEPTION (#PF)\r\nERROR CODE: ");
   print_hex(error_code);

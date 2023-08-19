@@ -76,7 +76,6 @@ void pmmngr_init(physical_addr start_address, uint32_t size) {
 void pmmngr_init_region(physical_addr base, uint32_t size) {
   int32_t align = base / BLOCK_SIZE;
   int32_t blocks = size / BLOCK_SIZE;
-
   for (; blocks > 0; blocks--) {
     mmap_unset(align++);
     used_blocks--;
@@ -90,7 +89,6 @@ void pmmngr_init_region(physical_addr base, uint32_t size) {
 void pmmngr_deinit_region(physical_addr base, uint32_t size) {
   int32_t align = base / BLOCK_SIZE;
   int32_t blocks = size / BLOCK_SIZE;
-
   for (; blocks > 0; blocks--) {
     mmap_set(align++);
     used_blocks++;

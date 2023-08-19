@@ -3,7 +3,7 @@
 #ifndef PMM_H
 #define PMM_H
 
-typedef uint32_t physical_addr ;
+typedef uint32_t physical_addr;
 
 // 8 blocks per byte
 #define BLOCKS_PER_BYTE 8

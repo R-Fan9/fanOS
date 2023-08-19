@@ -1,5 +1,6 @@
 #include "C/stdint.h"
 #include "C/string.h"
+#include "debug/display.h"
 #include "phyical_mmgnr.h"
 #include "virtual_mmgnr.h"
 #include "vmmngr_pde.h"
@@ -15,13 +16,11 @@ void vmmngr_enable_paging();
 
 uint8_t vmmngr_alloc_page(pt_entry *e) {
 
-  // allocate a free physical frame
   physical_addr *p = pmmngr_alloc_block();
   if (!p) {
     return 0;
   }
 
-  // map it to the page
   pt_entry_set_frame(e, (physical_addr)p);
   pt_entry_add_attrib(e, PTE_PRESENT);
   return 1;
@@ -48,10 +47,6 @@ uint8_t vmmngr_switch_pdirectory(pdirectory *dir) {
   // CR3 (Control register 3) holds address of the current page directory
   __asm__ __volatile__("movl %%EAX, %%CR3" : : "a"(curpdbr));
   return 1;
-}
-
-void vmmngr_flush_tlb_entry(virtual_addr addr) {
-  __asm__ __volatile__("cli; invlpg (%0); sti" : : "r"(addr));
 }
 
 void vmmngr_map_page(physical_addr *phys_addr, virtual_addr *virt_addr) {
@@ -89,8 +84,8 @@ void vmmngr_map_page(physical_addr *phys_addr, virtual_addr *virt_addr) {
   pt_entry *page = vmmngr_ptable_get_entry(table, (virtual_addr)virt_addr);
 
   // map it in (Can also do (*page |= 3 to enable..)
-  pt_entry_set_frame(page, (physical_addr)phys_addr);
   pt_entry_add_attrib(page, PTE_PRESENT);
+  pt_entry_set_frame(page, (physical_addr)phys_addr);
 }
 
 void vmmngr_unmap_page(virtual_addr *addr) {
@@ -118,9 +113,10 @@ void vmmngr_init() {
 
   // clear page table
   memset(table, 0, sizeof(ptable));
+  memset(table2, 0, sizeof(ptable));
 
   // 1st 4MB are idenitity mapped
-  for (int i = 0, frame = 0x0, virt = 0x00000000; i < 1024;
+  for (uint32_t i = 0, frame = 0x0, virt = 0x00000000; i < 1024;
        i++, frame += PAGE_SIZE, virt += PAGE_SIZE) {
 
     // create a new page
@@ -135,7 +131,7 @@ void vmmngr_init() {
 
   // map 1MB physical address to 3GB virtual address
   // kernel is located here
-  for (int i = 0, frame = 0x100000, virt = 0xC0000000; i < 1024;
+  for (uint32_t i = 0, frame = 0x100000, virt = 0xC0000000; i < 1024;
        i++, frame += PAGE_SIZE, virt += PAGE_SIZE) {
 
     // create a new page
@@ -176,9 +172,13 @@ void vmmngr_init() {
 }
 
 void vmmngr_enable_paging() {
-  // set PG (paging) bit 31 and PE (protection enable) bit 0 of CR0
+  // set PG (paging) bit 31 of CR0
   __asm__ __volatile__(
-      "movl %CR0, %EAX; orl $0x80000001, %EAX; movl %EAX, %CR0");
+      "movl %CR0, %EAX; orl $0x80000000, %EAX; movl %EAX, %CR0");
+}
+
+void vmmngr_flush_tlb_entry(virtual_addr addr) {
+  __asm__ __volatile__("cli; invlpg (%0); sti" : : "r"(addr));
 }
 
 pt_entry *vmmngr_ptable_get_entry(ptable *table, virtual_addr addr) {

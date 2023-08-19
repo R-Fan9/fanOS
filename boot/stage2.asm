@@ -123,7 +123,7 @@ stage3:
 ;----------------------------------------------------
 copy_image:
     mov	    eax, DWORD [image_size]
-    mov	    [0xA500], eax	; move the value of kernel image size to address 0xA500
+    mov	    [0x8000], eax	; move the value of kernel image size to address 0xA500
     movzx   ebx, WORD [bpbBytesPerSector]
     mul	    ebx
     mov	    ebx, 4
