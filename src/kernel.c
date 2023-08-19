@@ -12,7 +12,7 @@
 
 #define SMAP_ENTRY_COUNT_ADDRESS 0x1000;
 #define SMAP_ENTRY_ADDRESS 0x1004;
-#define KERNEL_SIZE_ADDRESS 0x8000
+#define KERNEL_SIZE_ADDRESS 0x8000;
 
 typedef struct SMAP_entry {
   uint64_t base;
@@ -31,8 +31,7 @@ int main(void) {
   idt_init();
 
   // set up exception handlers (i.e, divide by 0, page fault..)
-  idt_set_descriptor(14, page_fault_handler,
-                     TRAP_GATE_FLAGS); // page fault #PF error, ISR 14
+  idt_set_descriptor(14, page_fault_handler, TRAP_GATE_FLAGS);
 
   // mask off all hardware interrupts, disable PIC
   disable_pic();
@@ -89,7 +88,7 @@ int main(void) {
     }
   }
 
-  // deiniialize memory region below 0x12000 for the kernel and "OS" memory map
+  // set memory region below 0x12000 for the kernel/OS as reserved
   pmmngr_deinit_region(0x1000, 0x11000);
 
   // deinitialize memory region where the kernel is in
@@ -106,7 +105,7 @@ int main(void) {
   print_dec(pmmngr_get_free_block_count());
   print_string((uint8_t *)"\n\n");
 
-  // vmmngr_init();
+  vmmngr_init();
 
   __asm__ __volatile__("cli;hlt" : : "a"(0x777));
 
