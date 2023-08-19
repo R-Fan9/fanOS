@@ -1,6 +1,6 @@
 #include "vmmngr_pde.h"
 #include "C/stdint.h"
-#include "phyical_mmgnr.h"
+#include "physical_mmngr.h"
 
 void pd_entry_add_attrib(pd_entry *e, uint32_t attrib) { *e |= attrib; }
 

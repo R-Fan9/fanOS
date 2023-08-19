@@ -7,8 +7,8 @@
 #include "interrupts/exceptions.h"
 #include "interrupts/keyboard.h"
 #include "interrupts/pit.h"
-#include "memory/phyical_mmgnr.h"
-#include "memory/virtual_mmgnr.h"
+#include "memory/physical_mmngr.h"
+#include "memory/virtual_mmngr.h"
 
 #define SMAP_ENTRY_COUNT_ADDRESS 0x1000;
 #define SMAP_ENTRY_ADDRESS 0x1004;

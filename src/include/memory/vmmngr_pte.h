@@ -1,5 +1,5 @@
 #include "C/stdint.h"
-#include "phyical_mmgnr.h"
+#include "physical_mmngr.h"
 
 #ifndef VMMNGR_PTE
 #define VMMNGR_PTE

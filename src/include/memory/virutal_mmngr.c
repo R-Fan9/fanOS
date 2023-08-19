@@ -1,8 +1,8 @@
 #include "C/stdint.h"
 #include "C/string.h"
 #include "debug/display.h"
-#include "phyical_mmgnr.h"
-#include "virtual_mmgnr.h"
+#include "physical_mmngr.h"
+#include "virtual_mmngr.h"
 #include "vmmngr_pde.h"
 #include "vmmngr_pte.h"
 

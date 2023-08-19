@@ -2,7 +2,7 @@
 #include "C/stdint.h"
 #include "C/string.h"
 #include "debug/display.h"
-#include "phyical_mmgnr.h"
+#include "physical_mmngr.h"
 
 // size of physical memory
 static uint32_t memory_size = 0;
