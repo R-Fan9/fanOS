@@ -10,9 +10,9 @@
 #include "memory/physical_mmngr.h"
 #include "memory/virtual_mmngr.h"
 
+#define KERNEL_SIZE_ADDRESS 0x8000;
 #define SMAP_ENTRY_COUNT_ADDRESS 0x1000;
 #define SMAP_ENTRY_ADDRESS 0x1004;
-#define KERNEL_SIZE_ADDRESS 0x8000;
 
 typedef struct SMAP_entry {
   uint64_t base;
@@ -88,7 +88,7 @@ int main(void) {
     }
   }
 
-  // set memory region below 0x12000 for the kernel/OS as reserved
+  // deinitialize memory region below 0x12000 for BIOS
   pmmngr_deinit_region(0x1000, 0x11000);
 
   // deinitialize memory region where the kernel is in

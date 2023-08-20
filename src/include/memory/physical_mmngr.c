@@ -1,8 +1,8 @@
+#include "physical_mmngr.h"
 #include "C/stdbool.h"
 #include "C/stdint.h"
 #include "C/string.h"
 #include "debug/display.h"
-#include "physical_mmngr.h"
 
 // size of physical memory
 static uint32_t memory_size = 0;
@@ -19,33 +19,33 @@ static uint32_t *memory_map = 0;
 
 void mmap_set(uint32_t bit);
 void mmap_unset(uint32_t bit);
-uint8_t mmap_test(uint32_t bit);
 int32_t mmap_first_free_blocks(uint32_t blocks);
 
 void mmap_set(uint32_t bit) { memory_map[bit / 32] |= (1 << (bit % 32)); }
 
 void mmap_unset(uint32_t bit) { memory_map[bit / 32] &= ~(1 << (bit % 32)); }
 
-uint8_t mmap_test(uint32_t bit) {
-  return memory_map[bit / 32] & (1 << (bit % 32));
-}
-
 int32_t mmap_first_free_blocks(uint32_t blocks) {
   if (blocks == 0) {
     return -1;
   }
 
-  for (uint32_t i = 0; i < pmmngr_get_block_count() / 32; i++) {
+  uint32_t mmap_size = pmmngr_get_block_count() / 32;
+
+  for (uint32_t i = 0; i < mmap_size; i++) {
     if (memory_map[i] != 0xFFFFFFFF) {
       for (uint32_t j = 0; j < 32; j++) {
-        uint32_t bit = (1 << j);
-        if (!(memory_map[i] & bit)) {
 
-          uint32_t start_bit = i * 32 + bit;
-          uint32_t free_blocks = 0;
+        if (!(memory_map[i] & (1 << (j % 32)))) {
+          for (uint32_t count = 0, free_blocks = 0; count < blocks; count++) {
+            uint32_t idx = i;
+            uint32_t bit = j + count;
+            uint32_t idx_count = bit / 32;
+            for (; idx_count > 0 && idx + 1 < mmap_size; idx_count--) {
+              idx++;
+            }
 
-          for (uint32_t count = 0; count <= blocks; count++) {
-            if (!mmap_test(start_bit + count)) {
+            if (!(memory_map[idx] & (1 << (bit % 32)))) {
               free_blocks++;
             }
 
@@ -95,7 +95,7 @@ void pmmngr_deinit_region(physical_addr base, uint32_t size) {
   }
 }
 
-uint32_t *pmmngr_alloc_block() { return pmmngr_alloc_blocks(1); }
+physical_addr *pmmngr_alloc_block() { return pmmngr_alloc_blocks(1); }
 
 physical_addr *pmmngr_alloc_blocks(uint32_t blocks) {
 
