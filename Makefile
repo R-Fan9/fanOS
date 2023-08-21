@@ -50,7 +50,7 @@ run: bin/OS.bin
 debug: bin/OS.bin
 	$(QEMU) $(QFLAGS) bin/OS.bin -S -s
 
-bochs:
+bochs: bin/OS.bin
 	$(BOCHS) $(BFLAGS) .bochsrc
 
 clean:
