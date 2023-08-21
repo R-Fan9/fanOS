@@ -11,6 +11,9 @@ LFLAGS = -m elf_i386
 QEMU = qemu-system-i386 
 QFLAGS = -monitor stdio -fda 
 
+BOCHS = bochs
+BFLAGS = -qf
+
 bootloader := boot/build/Boot.bin boot/build/KRNLDR.SYS
 
 asm_source_files := $(shell find src/ -name *.asm)
@@ -46,6 +49,9 @@ run: bin/OS.bin
 
 debug: bin/OS.bin
 	$(QEMU) $(QFLAGS) bin/OS.bin -S -s
+
+bochs:
+	$(BOCHS) $(BFLAGS) .bochsrc
 
 clean:
 	rm -rf boot/build/* bin/* build/*

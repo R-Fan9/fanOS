@@ -1,0 +1,6 @@
+display_library: sdl2
+megs: 32
+floppya: 1_44=bin/OS.bin, status=inserted
+boot: floppy
+clock: sync=realtime, time0=local
+sound: driver=null
