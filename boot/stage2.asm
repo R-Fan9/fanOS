@@ -92,6 +92,8 @@ main:
 ; Enable pmode
 ;----------------------------------------------------
 enter_stage3:
+    mov	    si, success_msg
+    call    print_str
 
     cli
     mov	    eax, cr0
@@ -150,5 +152,6 @@ image_name   db "KRNL    SYS"
 image_size   db 0
 
 loading_msg	db	"Searching for Operating System...", 0x0A, 0x00
+success_msg	db	"Found Operating System!!!", 0x0A, 0x00
 failure_msg db 0x0D, 0x0A, "*** FATAL: Missing or corrupt KRNL.SYS. Press Any Key to Reboot.", 0x0D, 0x0A, 0x0A, 0x00
 
