@@ -15,7 +15,7 @@ bits 16
 ;	/ret bp=entry count
 ;---------------------------------------------
 
-get_memory_map
+get_memory_map:
 	xor		ebx, ebx
 	xor		bp, bp					; number of entries stored here
 	mov		edx, 'PAMS'				; 'SMAP'

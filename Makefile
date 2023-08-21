@@ -54,7 +54,8 @@ bochs:
 	$(BOCHS) $(BFLAGS) .bochsrc
 
 clean:
-	rm -rf boot/build/* bin/* build/*
+	rm -rf bin/* build/* && \
+	$(MAKE) -C boot clean
 
 git:
 	git add -A
