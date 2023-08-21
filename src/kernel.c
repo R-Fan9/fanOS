@@ -105,7 +105,7 @@ int main(void) {
   print_dec(pmmngr_get_free_block_count());
   print_string((uint8_t *)"\n\n");
 
-  // vmmngr_init();
+  vmmngr_init();
 
   __asm__ __volatile__("cli;hlt" : : "a"(0x777));
 

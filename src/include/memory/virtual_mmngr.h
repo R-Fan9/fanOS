@@ -36,6 +36,9 @@ typedef struct {
   pd_entry entries[TABLES_PER_DIR];
 } pdirectory;
 
+// display page directory
+void vmmngr_display_pdirectory(pdirectory *dir);
+
 // allocate a page in physical memory
 uint8_t vmmngr_alloc_page(pt_entry *e);
 

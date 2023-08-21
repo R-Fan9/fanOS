@@ -13,7 +13,6 @@ pd_entry *vmmngr_pdirectory_get_entry(pdirectory *dir, virtual_addr addr);
 pt_entry *vmmngr_get_page(virtual_addr addr);
 pd_entry *vmmngr_get_table(virtual_addr addr);
 pdirectory *vmmngr_get_directory();
-void display_pdirectory();
 
 uint8_t vmmngr_alloc_page(pt_entry *e) {
 
@@ -154,6 +153,11 @@ void vmmngr_init() {
   // clear directory table and set it as current
   memset(dir, 0, sizeof(pdirectory));
 
+  for (uint32_t i = 0; i < TABLES_PER_DIR; i++) {
+    pd_entry *entry = &dir->entries[i];
+    pd_entry_add_attrib(entry, PDE_WRITABLE);
+  }
+
   pd_entry *kernel_entry = vmmngr_pdirectory_get_entry(dir, 0xC0000000);
   pd_entry_add_attrib(kernel_entry, PDE_PRESENT);
   pd_entry_add_attrib(kernel_entry, PDE_WRITABLE);
@@ -209,8 +213,7 @@ pd_entry *vmmngr_get_table(virtual_addr addr) {
 
 pdirectory *vmmngr_get_directory() { return curdir; }
 
-void display_pdirectory() {
-  pdirectory *dir = vmmngr_get_directory();
+void vmmngr_display_pdirectory(pdirectory *dir) {
 
   for (uint32_t i = 0; i < TABLES_PER_DIR; i++) {
     pd_entry *e = &dir->entries[i];
