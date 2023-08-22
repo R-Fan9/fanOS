@@ -3,7 +3,7 @@ bits 16
 org 0x500
 
 %define IMAGE_PMODE_BASE 0x50000   ; where the kernel is to be loaded to in protected mode
-%define IMAGE_RMODE_BASE 0x3000     ; where the kernel is to be loaded to in real mode
+%define IMAGE_RMODE_BASE 0x3000    ; where the kernel is to be loaded to in real mode
 
 start:
     jmp	    main				
