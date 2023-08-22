@@ -211,29 +211,3 @@ pd_entry *vmmngr_get_table(virtual_addr addr) {
 }
 
 pdirectory *vmmngr_get_directory() { return curdir; }
-
-void vmmngr_display_pdirectory(pdirectory *dir) {
-
-  for (uint32_t i = 0; i < TABLES_PER_DIR; i++) {
-    pd_entry *e = &dir->entries[i];
-
-    if (*e != 0) {
-      print_dec(i);
-      print_char(' ');
-      print_hex((uint32_t)e);
-      print_char(' ');
-      print_hex((uint32_t)*e);
-      print_char('\n');
-      ptable *table = (ptable *)PAGE_GET_PHYSICAL_ADDRESS(e);
-      for (uint32_t j = 0; j < PAGES_PER_TABLE; j++) {
-        pt_entry *p = &table->entries[j];
-        print_dec(j);
-        print_char(' ');
-        print_hex((uint32_t)p);
-        print_char(' ');
-        print_hex((uint32_t)*p);
-        print_char('\n');
-      }
-    }
-  }
-}

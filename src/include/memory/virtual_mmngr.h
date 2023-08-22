@@ -40,9 +40,6 @@ typedef struct {
 // get page directory
 pdirectory *vmmngr_get_directory();
 
-// display page directory
-void vmmngr_display_pdirectory(pdirectory *dir);
-
 // allocate a page in physical memory
 uint8_t vmmngr_alloc_page(pt_entry *e);
 
