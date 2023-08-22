@@ -56,7 +56,7 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // enable interrupts
   __asm__ __volatile__("sti");
 
-  //TODO - load kernel into physical address 0x100000
+  // TODO - load kernel into physical address 0x100000
 
   uint32_t kernerl_size = *(uint32_t *)KERNEL_SIZE_ADDRESS;
   print_string((uint8_t *)"kernel size: ");
@@ -110,6 +110,8 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   print_string((uint8_t *)"\npmm free blocks: ");
   print_dec(pmmngr_get_free_block_count());
   print_string((uint8_t *)"\n\n");
+
+  physical_addr *addr = (physical_addr *)0x100000;
 
   vmmngr_init();
 

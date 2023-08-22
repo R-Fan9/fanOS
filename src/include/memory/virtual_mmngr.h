@@ -36,6 +36,10 @@ typedef struct {
   pd_entry entries[TABLES_PER_DIR];
 } pdirectory;
 
+
+// get page directory
+pdirectory *vmmngr_get_directory();
+
 // display page directory
 void vmmngr_display_pdirectory(pdirectory *dir);
 

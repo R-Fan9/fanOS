@@ -12,7 +12,6 @@ pt_entry *vmmngr_ptable_get_entry(ptable *table, virtual_addr addr);
 pd_entry *vmmngr_pdirectory_get_entry(pdirectory *dir, virtual_addr addr);
 pt_entry *vmmngr_get_page(virtual_addr addr);
 pd_entry *vmmngr_get_table(virtual_addr addr);
-pdirectory *vmmngr_get_directory();
 
 uint8_t vmmngr_alloc_page(pt_entry *e) {
 
