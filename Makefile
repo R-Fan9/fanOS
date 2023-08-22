@@ -3,14 +3,16 @@ ASFLAGS = -f elf32
 
 CC = gcc
 CINCLUDE = -I src/include
-CFLAGS = $(CINCLUDE) -m32 -fno-PIC -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
-			-nostartfiles -nodefaultlibs -ffreestanding -Wall -Wextra -Werror -g -c
+CFLAGS = $(CINCLUDE) -std=c17 -m32 -march=i386 -mgeneral-regs-only -ffreestanding -fno-stack-protector -fno-builtin -nostdinc -nostartfiles -nodefaultlibs -fno-PIC -fno-pie -Wall -Wextra -Wno-pointer-sign -Wno-interrupt-service-routine -g -c
 
 LD = ld
-LFLAGS = -m elf_i386
+LFLAGS = -m elf_i386 --oformat binary -T target/stage3.ld
 
 QEMU = qemu-system-i386 
-QFLAGS = -monitor stdio -fda 
+QFLAGS = -monitor stdio -fda
+
+BOCHS = bochs
+BFLAGS = -qf
 
 bootloader := boot/build/Boot.bin boot/build/KRNLDR.SYS
 
@@ -30,7 +32,7 @@ $(c_object_files): build/%.o : src/%.c
 
 build/KRNL.SYS: $(asm_object_files) $(c_object_files)
 	mkdir -p $(dir $@) && \
-	$(LD) $(LFLAGS) -o $@ -T target/link.ld $^
+	$(LD) $(LFLAGS) -o $@ $^
 
 $(bootloader):
 	$(MAKE) -C boot all
@@ -48,8 +50,12 @@ run: bin/OS.bin
 debug: bin/OS.bin
 	$(QEMU) $(QFLAGS) bin/OS.bin -S -s
 
+bochs: bin/OS.bin
+	$(BOCHS) $(BFLAGS) .bochsrc
+
 clean:
-	rm -rf boot/build/* bin/* build/*
+	rm -rf bin/* build/* && \
+	$(MAKE) -C boot clean
 
 git:
 	git add -A
