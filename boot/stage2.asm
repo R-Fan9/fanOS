@@ -2,7 +2,7 @@ bits 16
 
 org 0x500
 
-%define IMAGE_PMODE_BASE 0x100000   ; where the kernel is to be loaded to in protected mode
+%define IMAGE_PMODE_BASE 0x50000   ; where the kernel is to be loaded to in protected mode
 %define IMAGE_RMODE_BASE 0x3000     ; where the kernel is to be loaded to in real mode
 
 start:
@@ -114,10 +114,10 @@ stage3:
     ; setup registers
     mov	    ax, DATA_DESC	; data descriptor ix 0x10
     mov	    ds, ax
-
-    ; set up stack
-    mov	    ss, ax
     mov	    es, ax
+    mov	    fs, ax
+    mov	    gs, ax
+    mov	    ss, ax
     mov	    esp, 0x90000	; stack begins from 0x90000 
 
 ;----------------------------------------------------
@@ -150,7 +150,6 @@ stop:
 ;*************************************************;
 image_name   db "KRNL    SYS"
 image_size   db 0
-
 loading_msg	db	"Searching for Operating System...", 0x0A, 0x00
 success_msg	db	"Found Operating System!!!", 0x0A, 0x00
 failure_msg db 0x0D, 0x0A, "*** FATAL: Missing or corrupt KRNL.SYS. Press Any Key to Reboot.", 0x0D, 0x0A, 0x0A, 0x00

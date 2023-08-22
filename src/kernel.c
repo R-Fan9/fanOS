@@ -21,7 +21,7 @@ typedef struct SMAP_entry {
   uint32_t acpi;
 } __attribute__((packed)) SMAP_entry_t;
 
-int main(void) {
+__attribute__((section("kernel_main"))) void main(void) {
   clear_screen();
 
   // set up Global Descritor Table
@@ -107,10 +107,10 @@ int main(void) {
 
   vmmngr_init();
 
-  __asm__ __volatile__("cli;hlt" : : "a"(0x777));
+  // test page fault
+  // __asm__ __volatile__("nop" : : "a"(0xB0000000));
 
   while (1) {
     __asm__ __volatile__("hlt\n\t");
   }
-  return 0;
 }
