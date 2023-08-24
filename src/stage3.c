@@ -7,6 +7,7 @@
 #include "interrupts/exceptions.h"
 #include "interrupts/keyboard.h"
 #include "interrupts/pit.h"
+#include "interrupts/floppydisk.h"
 #include "memory/physical_mmngr.h"
 #include "memory/virtual_mmngr.h"
 
@@ -21,10 +22,31 @@ typedef struct SMAP_entry {
   uint32_t acpi;
 } __attribute__((packed)) SMAP_entry_t;
 
-// extern void kmain(void);
+void hal_init();
+void setup_interrupts();
+void mmngr_init();
 
 __attribute__((section("prekernel_setup"))) void pkmain(void) {
   clear_screen();
+
+  // TODO - load kernel into physical address 0x100000
+
+  // initialize hardware abstraction layer (GDT, IDT, PIC)
+  hal_init();
+  setup_interrupts();
+
+  // initialize physical & virtual memory manager
+  mmngr_init();
+
+  // TODO - once kernel is load to physical address 0x100000,
+  // call ((void (*)(void))0xC0000000)() to execute higher half kernel
+  
+  while (1) {
+    __asm__ __volatile__("hlt\n\t");
+  }
+}
+
+void hal_init() {
 
   // set up Global Descritor Table
   gdt_init();
@@ -32,22 +54,27 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // set up Interrupt Descritor Table
   idt_init();
 
-  // set up exception handlers (i.e, divide by 0, page fault..)
-  idt_set_descriptor(14, page_fault_handler, TRAP_GATE_FLAGS);
-
   // mask off all hardware interrupts, disable PIC
   disable_pic();
 
   // remap PIC IRQ interrupts (IRQ0 starts at 0x20)
   pic_init();
+}
+
+void setup_interrupts() {
+
+  // set up exception handlers (i.e, divide by 0, page fault..)
+  idt_set_descriptor(14, page_fault_handler, TRAP_GATE_FLAGS);
 
   // add ISRs for PIC hardware interrupts
   idt_set_descriptor(0x20, timer_irq0_handler, INT_GATE_FLAGS);
   idt_set_descriptor(0x21, keyboard_irq1_handler, INT_GATE_FLAGS);
+  idt_set_descriptor(0x26, fd_irq6_handler, INT_GATE_FLAGS);
 
   // enable PIC IRQ interrupts after setting up their descriptors
   clear_irq_mask(0); // enable timer - IRQ0
   clear_irq_mask(1); // enable keyboard - IRQ1
+  clear_irq_mask(6); // enable floppy disk - IRQ6
 
   // set default PIT Timer IRQ0 rate - ~1000hz
   // 1193182 MHZ / 1193 = ~1000
@@ -55,8 +82,9 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
 
   // enable interrupts
   __asm__ __volatile__("sti");
+}
 
-  // TODO - load kernel into physical address 0x100000
+void mmngr_init() {
 
   uint32_t kernerl_size = *(uint32_t *)KERNEL_SIZE_ADDRESS;
   print_string((uint8_t *)"kernel size: ");
@@ -73,6 +101,7 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   print_hex(total_memory);
   print_char('\n');
 
+  // initialize physical memory manager
   pmmngr_init(0x30000, total_memory);
 
   for (uint32_t i = 0; i < entry_count; i++, entry++) {
@@ -95,10 +124,11 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // deinitialize memory region below 0x12000 for BIOS & Bootloader
   pmmngr_deinit_region(0x1000, 0x11000);
 
-  // deinitialize memory region where the kernel is in
+  // deinitialize memory region where the prekernel is in
+  pmmngr_deinit_region(0x50000, kernerl_size * 512);
+
   // TODO - once kernel is loaded to physical address 0x100000,
   // call pmmngr_deinit_region(0x100000, kernerl_size * 512);
-  pmmngr_deinit_region(0x50000, kernerl_size * 512);
 
   // deinitialize memory region where the memory map is in
   pmmngr_deinit_region(0x30000, pmmngr_get_block_count() / BLOCKS_PER_BYTE);
@@ -111,11 +141,6 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   print_dec(pmmngr_get_free_block_count());
   print_string((uint8_t *)"\n\n");
 
-  physical_addr *addr = (physical_addr *)0x100000;
-
+  // initialize virtual memory manager
   vmmngr_init();
-
-  // TODO - once kernel is load to physical address 0x100000,
-  // call ((void (*)(void))0xC0000000)() to execute higher half kernel
-  // kmain();
 }

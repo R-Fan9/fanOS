@@ -1,8 +1,8 @@
 #include "C/stdint.h"
 #include "hal/idt.h"
 
-#ifndef FD_H
-#define FD_H
+#ifndef FLOPPYDISK_H
+#define FLOPPYDISK_H
 
 #define DMA_BUFFER_BASE 0x1000;
 
@@ -90,4 +90,4 @@ void fd_lba_to_chs(int32_t lba, int32_t *head, int32_t *track, int32_t *sector);
 
 __attribute__((interrupt)) void fd_irq6_handler(int_frame_t *frame);
 
-#endif // !FD_H
+#endif // !FLOPPYDISK_H
