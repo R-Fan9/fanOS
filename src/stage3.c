@@ -21,7 +21,7 @@ typedef struct SMAP_entry {
   uint32_t acpi;
 } __attribute__((packed)) SMAP_entry_t;
 
-extern void kmain(void);
+// extern void kmain(void);
 
 __attribute__((section("prekernel_setup"))) void pkmain(void) {
   clear_screen();
@@ -117,5 +117,5 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
 
   // TODO - once kernel is load to physical address 0x100000,
   // call ((void (*)(void))0xC0000000)() to execute higher half kernel
-  kmain();
+  // kmain();
 }

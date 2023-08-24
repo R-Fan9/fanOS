@@ -6,6 +6,12 @@
 
 static uint32_t pit_ticks = 0;
 
+void sleep(uint32_t ms) {
+  uint32_t ticks = ms + get_tick_count();
+  while (ticks > get_tick_count())
+    ;
+}
+
 uint32_t get_tick_count() { return pit_ticks; }
 
 __attribute__((interrupt)) void timer_irq0_handler(int_frame_t *frame) {

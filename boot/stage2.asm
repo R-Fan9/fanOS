@@ -148,7 +148,7 @@ stop:
 ;*************************************************;
 ;   Data section
 ;*************************************************;
-image_name   db "KRNL    SYS"
+image_name   db "PRKRNL  SYS"
 image_size   db 0
 loading_msg	db	"Searching for Operating System...", 0x0A, 0x00
 success_msg	db	"Found Operating System!!!", 0x0A, 0x00

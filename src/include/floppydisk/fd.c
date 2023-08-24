@@ -3,9 +3,8 @@
 #include "C/stdint.h"
 #include "hal/idt.h"
 #include "hal/pic.h"
+#include "interrupts/pit.h"
 #include "ports/io.h"
-
-extern void sleep(uint32_t ms);
 
 void fd_dma_init();
 void fd_dma_read();

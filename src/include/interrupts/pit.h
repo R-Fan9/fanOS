@@ -49,5 +49,7 @@ __attribute__((interrupt)) void timer_irq0_handler(int_frame_t *frame);
 uint32_t get_tick_count();
 void pit_set_channel_mode_frequency(uint8_t channel, int32_t freq,
                                     uint8_t mode);
+void sleep(uint32_t ms);
+
 
 #endif // !PIC_H

@@ -12,8 +12,3 @@ __attribute__((section("kernel_main"))) void kmain(void) {
   }
 }
 
-void sleep(uint32_t ms) {
-  uint32_t ticks = ms + get_tick_count();
-  while (ticks > get_tick_count())
-    ;
-}
