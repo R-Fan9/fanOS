@@ -2,8 +2,8 @@ bits 16
 
 org 0x500
 
-%define IMAGE_PMODE_BASE 0x50000   ; where the kernel is to be loaded to in protected mode
-%define IMAGE_RMODE_BASE 0x3000    ; where the kernel is to be loaded to in real mode
+%define STAGE3_PMODE_BASE 0x50000   ; where the prekernel is to be loaded to in protected mode
+%define STAGE3_RMODE_BASE 0x3000    ; where the prekernel is to be loaded to in real mode
 
 start:
     jmp	    main				
@@ -24,7 +24,7 @@ start:
 ;
 ;	    -Store BIOS information
 ;	    -Install GDT; go into protected mode (pmode)
-;	    -Jump to Stage 3 (kernel)
+;	    -Jump to Stage 3 (prekernel)
 ;*******************************************************
 
 main:
@@ -71,10 +71,10 @@ main:
     call    load_root
 
     ;----------------------------------------------------
-    ; Load kernel
+    ; Load prekernel
     ;----------------------------------------------------
     mov	    ebx, 0	; BX:BP points to buffer to load to
-    mov	    bp, IMAGE_RMODE_BASE
+    mov	    bp, STAGE3_RMODE_BASE
     mov	    si, image_name
     call    load_image
     mov	    DWORD [image_size], ecx
@@ -121,25 +121,25 @@ stage3:
     mov	    esp, 0x90000	; stack begins from 0x90000 
 
 ;----------------------------------------------------
-; Copy kernel to 1MB
+; Copy prekernel to 1MB
 ;----------------------------------------------------
 copy_image:
     mov	    eax, DWORD [image_size]
-    mov	    [0x8000], eax	; move the value of kernel image size to address 0x8000
+    mov	    [0x8000], eax	; move the value of prekernel image size to address 0x8000
     movzx   ebx, WORD [bpbBytesPerSector]
     mul	    ebx
     mov	    ebx, 4
     div	    ebx
     cld
-    mov	    esi, IMAGE_RMODE_BASE
-    mov	    edi, IMAGE_PMODE_BASE
+    mov	    esi, STAGE3_RMODE_BASE
+    mov	    edi, STAGE3_PMODE_BASE
     mov	    ecx, eax
     rep	    movsd		; copy image to its protected mode address
     
     ;----------------------------------------------------
-    ; Execute kernel
+    ; Execute prekernel
     ;----------------------------------------------------
-    jmp    CODE_DESC:IMAGE_PMODE_BASE
+    jmp    CODE_DESC:STAGE3_PMODE_BASE
 
 stop:
     cli

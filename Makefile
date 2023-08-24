@@ -42,12 +42,13 @@ build/KRNL.SYS: build/kernel.o $(include_object_files)
 $(bootloader):
 	$(MAKE) -C boot all
 
-bin/OS.bin: $(bootloader) build/PRKRNL.SYS 
+bin/OS.bin: $(bootloader) build/PRKRNL.SYS build/KRNL.SYS
 	mkdir -p $(dir $@) && \
 	dd if=/dev/zero of=bin/OS.bin bs=512   count=2880           # floppy is 2880 sectors of 512 bytes
 	dd if=boot/build/Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc
 	mcopy -i bin/OS.bin boot/build/KRNLDR.SYS \:\:KRNLDR.SYS
 	mcopy -i bin/OS.bin build/PRKRNL.SYS \:\:PRKRNL.SYS
+	mcopy -i bin/OS.bin build/KRNL.SYS \:\:KRNL.SYS
 
 run: bin/OS.bin
 	$(QEMU) $(QFLAGS) bin/OS.bin
