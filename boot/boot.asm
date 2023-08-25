@@ -167,7 +167,7 @@ main:
 	mov	cx, 0x000B	; 11 characters file name
 	mov	si, imageName
 	push	di
-    rep cmpsb			; test if entry matches
+	rep cmpsb			; test if entry matches
 	pop	di
 	je	load_FAT
 	pop	cx

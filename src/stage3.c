@@ -11,7 +11,7 @@
 #include "memory/physical_mmngr.h"
 #include "memory/virtual_mmngr.h"
 
-#define KERNEL_SIZE_ADDRESS 0x8000;
+#define PREKERNEL_SIZE_ADDRESS 0x8000;
 #define SMAP_ENTRY_COUNT_ADDRESS 0x1000;
 #define SMAP_ENTRY_ADDRESS 0x1004;
 
@@ -86,11 +86,11 @@ void setup_interrupts() {
 
 void mmngr_init() {
 
-  uint32_t kernerl_size = *(uint32_t *)KERNEL_SIZE_ADDRESS;
-  print_string((uint8_t *)"kernel size: ");
-  print_dec(kernerl_size);
+  uint32_t prekernerl_size = *(uint32_t *)PREKERNEL_SIZE_ADDRESS;
+  print_string((uint8_t *)"prekernel size: ");
+  print_dec(prekernerl_size);
   print_string((uint8_t *)" sectors, ");
-  print_dec(kernerl_size * 512);
+  print_dec(prekernerl_size * 512);
   print_string((uint8_t *)" bytes\n\n");
 
   uint32_t entry_count = *(uint32_t *)SMAP_ENTRY_COUNT_ADDRESS;
@@ -125,10 +125,10 @@ void mmngr_init() {
   pmmngr_deinit_region(0x1000, 0x11000);
 
   // deinitialize memory region where the prekernel is in
-  pmmngr_deinit_region(0x50000, kernerl_size * 512);
+  pmmngr_deinit_region(0x50000, prekernerl_size * 512);
 
-  // TODO - once kernel is loaded to physical address 0x100000,
-  // call pmmngr_deinit_region(0x100000, kernerl_size * 512);
+  //TODO - deinitialize memory region where the kernel is in
+  // pmmngr_deinit_region(0x100000, kernerl_size * 512);
 
   // deinitialize memory region where the memory map is in
   pmmngr_deinit_region(0x30000, pmmngr_get_block_count() / BLOCKS_PER_BYTE);

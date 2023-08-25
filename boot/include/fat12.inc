@@ -94,6 +94,7 @@ load_FAT:
 ; ret/ AX => File index number in directory table. -1 if error
 ;*******************************************
 find_image:
+
 	push	cx
 	push	dx
 	push	bx
@@ -105,7 +106,7 @@ find_image:
 	; browse root directory for binary image
 
 	mov		cx, WORD [bpbRootEntries]		; load loop counter
-	mov		di, ROOT_OFFSET					; locate first root directort entrt
+	mov		di, ROOT_OFFSET					; locate first root directort entry
 	cld										; clear direction flag
 
 .loop:
@@ -113,7 +114,7 @@ find_image:
 	mov		cx, 0x000B		; 11 character name
 	mov		si, bx			; image name is in BX
 	push	di
-rep	cmpsb				; test if entry matches
+	rep	cmpsb				; test if entry matches
 	pop		di
 	je		.found
 	pop		cx

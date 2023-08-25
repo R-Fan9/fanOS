@@ -5,7 +5,7 @@
 #include "memory/virtual_mmngr.h"
 
 __attribute__((section("kernel_main"))) void kmain(void) {
-  // clear_screen();
+  clear_screen();
 
   while (1) {
     __asm__ __volatile__("hlt\n\t");
