@@ -1,6 +1,7 @@
 #include "floppydisk.h"
 #include "C/stdbool.h"
 #include "C/stdint.h"
+#include "debug/display.h"
 #include "hal/idt.h"
 #include "hal/pic.h"
 #include "interrupts/pit.h"
@@ -108,7 +109,7 @@ uint8_t fd_read_status() { return inb(FD_MSR); }
 void fd_send_command(uint8_t cmd) {
   for (uint32_t i = 0; i < 500; i++) {
     if (fd_read_status() & FD_MSR_MASK_DATAREG) {
-      outb(FD_FIFO, cmd);
+      return outb(FD_FIFO, cmd);
     }
   }
 }
@@ -140,7 +141,7 @@ void fd_read_sector_imp(uint8_t head, uint8_t track, uint8_t sector) {
   fd_send_command(head);
   fd_send_command(sector);
   fd_send_command(FD_SECTOR_DTL_512);
-  fd_send_command(sector);
+  fd_send_command(next_sector);
   fd_send_command(FD_GAP3_LENGTH_3_5);
   fd_send_command(0xFF);
 
@@ -177,7 +178,6 @@ int32_t fd_calibrate(uint32_t drive) {
   fd_control_motor(true);
 
   for (uint32_t i = 1; i < 10; i++) {
-
     fd_send_command(FD_CMD_CALIBRATE);
     fd_send_command(drive);
     fd_wait_irq6();
@@ -212,6 +212,7 @@ int32_t fd_seek(uint32_t cy1, uint32_t head) {
   for (uint32_t i = 1; i < 10; i++) {
     fd_send_command(FD_CMD_SEEK);
     fd_send_command((head << 2) | current_drive);
+    fd_send_command(cy1);
     fd_wait_irq6();
     fd_check_int(&st0, &cy10);
 
@@ -226,7 +227,7 @@ int32_t fd_seek(uint32_t cy1, uint32_t head) {
 
 void fd_disable_controller() { fd_write_dor(0); }
 void fd_enable_controller() {
-  fd_write_dor(FD_DOR_MASK_RESET | FD_DOR_MASK_RESET);
+  fd_write_dor(FD_DOR_MASK_RESET | FD_DOR_MASK_DMA);
 }
 void fd_reset() {
 
@@ -246,6 +247,7 @@ void fd_reset() {
 
   // step rate=3ms, unload time=240ms, load time=16ms
   fd_drive_data(3, 16, 240, true);
+
   fd_calibrate(current_drive);
 }
 
@@ -253,6 +255,12 @@ __attribute__((interrupt)) void fd_irq6_handler(int_frame_t *frame) {
   (void)frame;
   fd_irq6_stat = 1;
   send_pic_eoi(6);
+}
+
+void fd_set_working_drive(uint8_t drive) {
+  if (drive < 4) {
+    current_drive = drive;
+  }
 }
 
 void fd_lba_to_chs(int lba, int *head, int *track, int *sector) {
@@ -280,7 +288,9 @@ uint8_t *fd_read_sector(int32_t sector_lba) {
 void fd_init(uint32_t drive) {
 
   fd_dma_init();
-  current_drive = drive;
+
+  fd_set_working_drive(drive);
+
   fd_reset();
 
   // step rate = 13ms, load time = 1ms, unload time = 0xFms, DMA

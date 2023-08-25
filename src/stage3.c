@@ -5,9 +5,9 @@
 #include "hal/idt.h"
 #include "hal/pic.h"
 #include "interrupts/exceptions.h"
+#include "interrupts/floppydisk.h"
 #include "interrupts/keyboard.h"
 #include "interrupts/pit.h"
-#include "interrupts/floppydisk.h"
 #include "memory/physical_mmngr.h"
 #include "memory/virtual_mmngr.h"
 
@@ -38,9 +38,20 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // initialize physical & virtual memory manager
   mmngr_init();
 
+  fd_init(0);
+
+  uint8_t *sector = fd_read_sector(0);
+
+  if (sector) {
+    for (uint32_t i = 0; i < 128; i++) {
+      print_hex(sector[i]);
+      print_char(' ');
+    }
+  }
+
   // TODO - once kernel is load to physical address 0x100000,
-  // call ((void (*)(void))0xC0000000)() to execute higher half kernel
-  
+  // ((void (*)(void))0xC0000000)() to execute higher half kernel
+
   while (1) {
     __asm__ __volatile__("hlt\n\t");
   }
@@ -127,8 +138,8 @@ void mmngr_init() {
   // deinitialize memory region where the prekernel is in
   pmmngr_deinit_region(0x50000, prekernerl_size * 512);
 
-  //TODO - deinitialize memory region where the kernel is in
-  // pmmngr_deinit_region(0x100000, kernerl_size * 512);
+  // TODO - deinitialize memory region where the kernel is in
+  //  pmmngr_deinit_region(0x100000, kernerl_size * 512);
 
   // deinitialize memory region where the memory map is in
   pmmngr_deinit_region(0x30000, pmmngr_get_block_count() / BLOCKS_PER_BYTE);
@@ -141,6 +152,6 @@ void mmngr_init() {
   print_dec(pmmngr_get_free_block_count());
   print_string((uint8_t *)"\n\n");
 
-  // initialize virtual memory manager
+  // initialize virtual memory manager & enable paging
   vmmngr_init();
 }
