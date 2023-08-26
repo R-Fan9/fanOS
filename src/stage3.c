@@ -1,5 +1,6 @@
 #include "C/ctype.h"
 #include "C/stdint.h"
+#include "C/string.h"
 #include "debug/display.h"
 #include "hal/gdt.h"
 #include "hal/idt.h"
@@ -26,28 +27,58 @@ void hal_init();
 void setup_interrupts();
 void mmngr_init();
 
+uint8_t *find_image(uint8_t *img_name, uint8_t *buffer) {
+  for (uint32_t i = 0; i < bpbRootEntries; i++) {
+    if (strncmp(img_name, &buffer[i * 32], 11) == 0) {
+      return &buffer[i * 32];
+    }
+  }
+  return 0;
+}
+
+void load_FAT(uint8_t *buffer) {
+  uint32_t fat_sector = bpbReservedSectors;
+  uint32_t fat_size = bpbNumberOfFATs * bpbSectorsPerFAT;
+  for (uint32_t i = 0; i < fat_size; i++) {
+    uint8_t *sector = fd_read_sector(fat_sector + i);
+    if (sector) {
+      memcpy(&buffer[i * bpbBytesPerSector], sector, bpbBytesPerSector);
+    }
+  }
+}
+
+void load_root(uint8_t *buffer) {
+  uint32_t root_sector =
+      bpbNumberOfFATs * bpbSectorsPerFAT + bpbReservedSectors;
+  uint32_t root_size = 32 * bpbRootEntries / bpbBytesPerSector;
+
+  for (uint32_t i = 0; i < root_size; i++) {
+    uint8_t *sector = fd_read_sector(root_sector + i);
+    if (sector) {
+      memcpy(&buffer[i * bpbBytesPerSector], sector, bpbBytesPerSector);
+    }
+  }
+}
+
 __attribute__((section("prekernel_setup"))) void pkmain(void) {
   clear_screen();
-
-  // TODO - load kernel into physical address 0x100000
 
   // initialize hardware abstraction layer (GDT, IDT, PIC)
   hal_init();
   setup_interrupts();
 
-  // initialize physical & virtual memory manager
-  mmngr_init();
-
+  // TODO - load kernel into physical address 0x100000
   fd_init(0);
-
-  uint8_t *sector = fd_read_sector(0);
-
-  if (sector) {
-    for (uint32_t i = 0; i < 128; i++) {
-      print_hex(sector[i]);
-      print_char(' ');
-    }
+  uint8_t *buffer = (uint8_t *)0x11000;
+  load_root(buffer);
+  uint8_t *img_addr = find_image((uint8_t *)"KRNL    SYS", buffer);
+  if (img_addr) {
+    uint16_t img_cluster = (uint16_t) * (uint8_t *)(img_addr + 26);
+    load_FAT(buffer);
   }
+
+  // initialize physical & virtual memory manager
+  // mmngr_init();
 
   // TODO - once kernel is load to physical address 0x100000,
   // ((void (*)(void))0xC0000000)() to execute higher half kernel

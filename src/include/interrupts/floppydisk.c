@@ -263,10 +263,15 @@ void fd_set_working_drive(uint8_t drive) {
   }
 }
 
-void fd_lba_to_chs(int lba, int *head, int *track, int *sector) {
+void fd_lba_to_chs(int32_t lba, int32_t *head, int32_t *track,
+                   int32_t *sector) {
   *head = (lba % (FD_SECTORS_PER_TRACK * 2)) / (FD_SECTORS_PER_TRACK);
   *track = lba / (FD_SECTORS_PER_TRACK * 2);
   *sector = lba % FD_SECTORS_PER_TRACK + 1;
+}
+
+uint32_t fd_chs_to_lba(uint16_t cluster) {
+  return (cluster - 2) * bpbSectorsPerCluster;
 }
 
 uint8_t *fd_read_sector(int32_t sector_lba) {

@@ -8,7 +8,7 @@ start:
 ;*********************************************
 ;	BIOS Parameter Block
 ;*********************************************
-bpbOEM			db "My OS   "			; OEM identifier (Cannot exceed 8 bytes!)
+bpbOEM			db "X86 OS  "			; OEM identifier (Cannot exceed 8 bytes!)
 bpbBytesPerSector:  	DW 512
 bpbSectorsPerCluster: 	DB 1
 bpbReservedSectors: 	DW 1
@@ -170,7 +170,7 @@ main:
 	rep cmpsb			; test if entry matches
 	pop	di
 	je	load_FAT
-	pop	cx
+	    pop	cx
 	add	di, 0x0020	; move to next entry by incrementing 32 bytes
 	loop	.loop
 	jmp	failure

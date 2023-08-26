@@ -6,6 +6,19 @@
 
 #define DMA_BUFFER_BASE 0x1000;
 
+// BIOS Parameter Block (BPB)
+enum BPB {
+  bpbBytesPerSector = 512,
+  bpbSectorsPerCluster = 1,
+  bpbReservedSectors = 1,
+  bpbNumberOfFATs = 2,
+  bpbRootEntries = 224,
+  bpbTotalSectors = 2880,
+  bpbSectorsPerFAT = 9,
+  bpbSectorsPerTrack = 18,
+  bpbHeadsPerCylinder = 2
+};
+
 enum FD_IO {
   FD_DOR = 0x3F2,  // digital output register
   FD_MSR = 0x3F4,  // main status register
@@ -85,8 +98,11 @@ void fd_get_working_drive();
 // read a sector
 uint8_t *fd_read_sector(int32_t sector_lba);
 
-// converts a LBA address to CHS
+// convert a LBA address to CHS
 void fd_lba_to_chs(int32_t lba, int32_t *head, int32_t *track, int32_t *sector);
+
+// convert CHS to a LBA address
+uint32_t fd_chs_to_lba(uint16_t cluster);
 
 __attribute__((interrupt)) void fd_irq6_handler(int_frame_t *frame);
 
