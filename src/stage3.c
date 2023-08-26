@@ -60,6 +60,41 @@ void load_root(uint8_t *buffer) {
   }
 }
 
+void load_image(uint8_t *buffer, uint8_t *fat_buffer, uint16_t img_cluster) {
+  uint32_t root_sector =
+      bpbNumberOfFATs * bpbSectorsPerFAT + bpbReservedSectors;
+  uint32_t root_size = 32 * bpbRootEntries / bpbBytesPerSector;
+  uint32_t data_sector = root_sector + root_size;
+  uint16_t cluster = img_cluster;
+
+  while (cluster < 0x0FF0) {
+    uint32_t img_sector = fd_chs_to_lba(cluster) + data_sector;
+
+    for (uint32_t i = 0; i < bpbSectorsPerCluster; i++) {
+      uint8_t *sector = fd_read_sector(img_sector + i);
+      if (sector) {
+        memcpy(&buffer[i * bpbBytesPerSector], sector, bpbBytesPerSector);
+      }
+    }
+
+    uint32_t fat_offset = cluster / 2 + cluster;
+    uint16_t fat_entry = (uint16_t) * (uint16_t *)(fat_buffer + fat_offset);
+
+    // even cluster
+    if (cluster % 2 == 0) {
+      // takes the lower 12 bits
+      fat_entry &= 0xFFF;
+
+    // odd cluster
+    } else {
+      // takes the higher 12 bits
+      fat_entry = (fat_entry >> 4) & 0xFFF;
+    }
+
+    cluster = fat_entry;
+  }
+}
+
 __attribute__((section("prekernel_setup"))) void pkmain(void) {
   clear_screen();
 
@@ -71,10 +106,11 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   fd_init(0);
   uint8_t *buffer = (uint8_t *)0x11000;
   load_root(buffer);
-  uint8_t *img_addr = find_image((uint8_t *)"KRNL    SYS", buffer);
+  uint8_t *img_addr = find_image((uint8_t *)"KRNLDR  SYS", buffer);
   if (img_addr) {
     uint16_t img_cluster = (uint16_t) * (uint8_t *)(img_addr + 26);
     load_FAT(buffer);
+    load_image((uint8_t *)0x100000, buffer, img_cluster);
   }
 
   // initialize physical & virtual memory manager
