@@ -25,7 +25,6 @@ typedef struct SMAP_entry {
 
 void hal_init();
 void setup_interrupts();
-void mmngr_init();
 
 uint8_t *find_image(uint8_t *img_name, uint8_t *buffer) {
   for (uint32_t i = 0; i < bpbRootEntries; i++) {
@@ -60,13 +59,15 @@ void load_root(uint8_t *buffer) {
   }
 }
 
-void load_image(uint8_t *buffer, uint8_t *fat_buffer, uint16_t img_cluster) {
+uint32_t load_image(uint8_t *buffer, uint8_t *fat_buffer,
+                    uint16_t img_cluster) {
   uint32_t root_sector =
       bpbNumberOfFATs * bpbSectorsPerFAT + bpbReservedSectors;
   uint32_t root_size = 32 * bpbRootEntries / bpbBytesPerSector;
   uint32_t data_sector = root_sector + root_size;
   uint16_t cluster = img_cluster;
 
+  uint32_t sector_count = 0;
   while (cluster < 0x0FF0) {
     uint32_t img_sector = fd_chs_to_lba(cluster) + data_sector;
 
@@ -76,6 +77,7 @@ void load_image(uint8_t *buffer, uint8_t *fat_buffer, uint16_t img_cluster) {
         memcpy(&buffer[i * bpbBytesPerSector], sector, bpbBytesPerSector);
       }
     }
+    sector_count++;
 
     uint32_t fat_offset = cluster / 2 + cluster;
     uint16_t fat_entry = (uint16_t) * (uint16_t *)(fat_buffer + fat_offset);
@@ -85,14 +87,16 @@ void load_image(uint8_t *buffer, uint8_t *fat_buffer, uint16_t img_cluster) {
       // takes the lower 12 bits
       fat_entry &= 0xFFF;
 
-    // odd cluster
+      // odd cluster
     } else {
       // takes the higher 12 bits
-      fat_entry = (fat_entry >> 4) & 0xFFF;
+      fat_entry >>= 4;
     }
 
     cluster = fat_entry;
   }
+
+  return sector_count;
 }
 
 __attribute__((section("prekernel_setup"))) void pkmain(void) {
@@ -102,26 +106,88 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   hal_init();
   setup_interrupts();
 
-  // TODO - load kernel into physical address 0x100000
+  uint32_t prekernel_size = *(uint32_t *)PREKERNEL_SIZE_ADDRESS;
+  print_string((uint8_t *)"prekernel size: ");
+  print_dec(prekernel_size);
+  print_string((uint8_t *)" sectors, ");
+  print_dec(prekernel_size * 512);
+  print_string((uint8_t *)" bytes\n\n");
+
+  uint32_t entry_count = *(uint32_t *)SMAP_ENTRY_COUNT_ADDRESS;
+  SMAP_entry_t *entry = (SMAP_entry_t *)SMAP_ENTRY_ADDRESS;
+  SMAP_entry_t *last_entry = entry + entry_count - 1;
+  uint32_t total_memory = last_entry->base + last_entry->size - 1;
+  print_string((uint8_t *)"Total memory: ");
+  print_hex(total_memory);
+  print_char('\n');
+
+  // initialize physical memory manager
+  pmmngr_init(0x30000, total_memory);
+
+  for (uint32_t i = 0; i < entry_count; i++, entry++) {
+    print_string((uint8_t *)"region: ");
+    print_dec(i);
+    print_string((uint8_t *)" start: ");
+    print_hex(entry->base);
+    print_string((uint8_t *)" size: ");
+    print_hex(entry->size);
+    print_string((uint8_t *)" type: ");
+    print_dec(entry->type);
+    print_char('\n');
+
+    // entry with type 1 indicates the memory region is available
+    if (entry->type == 1) {
+      pmmngr_init_region(entry->base, entry->size);
+    }
+  }
+
+  // deinitialize memory region below 0x15000 for BIOS & Bootloader
+  pmmngr_deinit_region(0x1000, 0x14000);
+
+  // deinitialize memory region where the prekernel is in
+  pmmngr_deinit_region(0x50000, prekernel_size * 512);
+
+  // deinitialize memory region where the memory map is in
+  pmmngr_deinit_region(0x30000, pmmngr_get_block_count() / BLOCKS_PER_BYTE);
+
+  // load kernel into physical address 0x100000
   fd_init(0);
   uint8_t *buffer = (uint8_t *)0x11000;
   load_root(buffer);
-  uint8_t *img_addr = find_image((uint8_t *)"KRNLDR  SYS", buffer);
+  uint8_t *img_addr = find_image((uint8_t *)"KRNL    SYS", buffer);
   if (img_addr) {
-    uint16_t img_cluster = (uint16_t) * (uint8_t *)(img_addr + 26);
+    uint16_t img_cluster = (uint16_t) * (uint16_t *)(img_addr + 26);
     load_FAT(buffer);
-    load_image((uint8_t *)0x100000, buffer, img_cluster);
+
+    uint8_t *kernel = (uint8_t *)0x100000;
+    uint32_t kernel_size = load_image(kernel, buffer, img_cluster);
+    print_string((uint8_t *)"kernel size: ");
+    print_dec(kernel_size);
+    print_string((uint8_t *)" sectors, ");
+    print_dec(kernel_size * 512);
+    print_string((uint8_t *)" bytes\n");
+
+    // deinitialize memory region where the kernel is in
+    pmmngr_deinit_region(0x100000, kernel_size * 512);
   }
 
-  // initialize physical & virtual memory manager
-  // mmngr_init();
+  print_string((uint8_t *)"\npmm total allocation blocks: ");
+  print_dec(pmmngr_get_block_count());
+  print_string((uint8_t *)"\npmm used blocks: ");
+  print_dec(pmmngr_get_used_block_count());
+  print_string((uint8_t *)"\npmm free blocks: ");
+  print_dec(pmmngr_get_free_block_count());
+  print_string((uint8_t *)"\n\n");
+
+  // initialize virtual memory manager & enable paging
+  vmmngr_init();
 
   // TODO - once kernel is load to physical address 0x100000,
   // ((void (*)(void))0xC0000000)() to execute higher half kernel
 
-  while (1) {
-    __asm__ __volatile__("hlt\n\t");
-  }
+  // while (1) {
+  //   __asm__ __volatile__("hlt\n\t");
+  // }
 }
 
 void hal_init() {
@@ -160,65 +226,4 @@ void setup_interrupts() {
 
   // enable interrupts
   __asm__ __volatile__("sti");
-}
-
-void mmngr_init() {
-
-  uint32_t prekernerl_size = *(uint32_t *)PREKERNEL_SIZE_ADDRESS;
-  print_string((uint8_t *)"prekernel size: ");
-  print_dec(prekernerl_size);
-  print_string((uint8_t *)" sectors, ");
-  print_dec(prekernerl_size * 512);
-  print_string((uint8_t *)" bytes\n\n");
-
-  uint32_t entry_count = *(uint32_t *)SMAP_ENTRY_COUNT_ADDRESS;
-  SMAP_entry_t *entry = (SMAP_entry_t *)SMAP_ENTRY_ADDRESS;
-  SMAP_entry_t *last_entry = entry + entry_count - 1;
-  uint32_t total_memory = last_entry->base + last_entry->size - 1;
-  print_string((uint8_t *)"Total memory: ");
-  print_hex(total_memory);
-  print_char('\n');
-
-  // initialize physical memory manager
-  pmmngr_init(0x30000, total_memory);
-
-  for (uint32_t i = 0; i < entry_count; i++, entry++) {
-    print_string((uint8_t *)"region: ");
-    print_dec(i);
-    print_string((uint8_t *)" start: ");
-    print_hex(entry->base);
-    print_string((uint8_t *)" size: ");
-    print_hex(entry->size);
-    print_string((uint8_t *)" type: ");
-    print_dec(entry->type);
-    print_char('\n');
-
-    // entry with type 1 indicates the memory region is available
-    if (entry->type == 1) {
-      pmmngr_init_region(entry->base, entry->size);
-    }
-  }
-
-  // deinitialize memory region below 0x12000 for BIOS & Bootloader
-  pmmngr_deinit_region(0x1000, 0x11000);
-
-  // deinitialize memory region where the prekernel is in
-  pmmngr_deinit_region(0x50000, prekernerl_size * 512);
-
-  // TODO - deinitialize memory region where the kernel is in
-  //  pmmngr_deinit_region(0x100000, kernerl_size * 512);
-
-  // deinitialize memory region where the memory map is in
-  pmmngr_deinit_region(0x30000, pmmngr_get_block_count() / BLOCKS_PER_BYTE);
-
-  print_string((uint8_t *)"\npmm total allocation blocks: ");
-  print_dec(pmmngr_get_block_count());
-  print_string((uint8_t *)"\npmm used blocks: ");
-  print_dec(pmmngr_get_used_block_count());
-  print_string((uint8_t *)"\npmm free blocks: ");
-  print_dec(pmmngr_get_free_block_count());
-  print_string((uint8_t *)"\n\n");
-
-  // initialize virtual memory manager & enable paging
-  vmmngr_init();
 }
