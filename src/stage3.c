@@ -45,24 +45,11 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   SMAP_entry_t *entry = (SMAP_entry_t *)SMAP_ENTRY_ADDRESS;
   SMAP_entry_t *last_entry = entry + entry_count - 1;
   uint32_t total_memory = last_entry->base + last_entry->size - 1;
-  print_string((uint8_t *)"Total memory: ");
-  print_hex(total_memory);
-  print_char('\n');
 
   // initialize physical memory manager
   pmmngr_init(0x30000, total_memory);
 
   for (uint32_t i = 0; i < entry_count; i++, entry++) {
-    print_string((uint8_t *)"region: ");
-    print_dec(i);
-    print_string((uint8_t *)" start: ");
-    print_hex(entry->base);
-    print_string((uint8_t *)" size: ");
-    print_hex(entry->size);
-    print_string((uint8_t *)" type: ");
-    print_dec(entry->type);
-    print_char('\n');
-
     // entry with type 1 indicates the memory region is available
     if (entry->type == 1) {
       pmmngr_init_region(entry->base, entry->size);
@@ -83,15 +70,15 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
 
   // load kernel into physical address 0x100000
   uint8_t *buffer = (uint8_t *)0x11000;
-  load_root(buffer);
-  uint8_t *img_addr = find_image((uint8_t *)"KRNL    SYS", buffer);
+  fat_load_root(buffer);
+  uint8_t *img_addr = fat_find_image((uint8_t *)"KRNL    SYS", buffer);
   if (img_addr) {
 
     uint16_t img_cluster = (uint16_t) * (uint16_t *)(img_addr + 26);
-    load_fat(buffer);
+    fat_load_FAT(buffer);
 
     uint8_t *kernel = (uint8_t *)0x100000;
-    uint32_t kernel_size = load_image(kernel, buffer, img_cluster);
+    uint32_t kernel_size = fat_load_image(kernel, buffer, img_cluster);
     print_string((uint8_t *)"kernel size: ");
     print_dec(kernel_size);
     print_string((uint8_t *)" sectors, ");
@@ -111,7 +98,7 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   print_string((uint8_t *)"\n\n");
 
   // initialize virtual memory manager & enable paging
-  vmmngr_init();
+  // vmmngr_init();
 
   // TODO - once kernel is load to physical address 0x100000,
   // ((void (*)(void))0xC0000000)() to execute higher half kernel

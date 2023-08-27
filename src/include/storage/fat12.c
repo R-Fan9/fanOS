@@ -1,9 +1,11 @@
 #include "fat12.h"
 #include "C/stdint.h"
 #include "C/string.h"
+#include "debug/display.h"
 #include "floppydisk.h"
+#include "interrupts/pit.h"
 
-uint8_t *find_image(uint8_t *img_name, uint8_t *buffer) {
+uint8_t *fat_find_image(uint8_t *img_name, uint8_t *buffer) {
   for (uint32_t i = 0; i < bpbRootEntries; i++) {
     if (strncmp(img_name, &buffer[i * 32], 11) == 0) {
       return &buffer[i * 32];
@@ -12,7 +14,7 @@ uint8_t *find_image(uint8_t *img_name, uint8_t *buffer) {
   return 0;
 }
 
-void load_fat(uint8_t *buffer) {
+void fat_load_FAT(uint8_t *buffer) {
   uint32_t fat_sector = bpbReservedSectors;
   uint32_t fat_size = bpbNumberOfFATs * bpbSectorsPerFAT;
   for (uint32_t i = 0; i < fat_size; i++) {
@@ -23,7 +25,7 @@ void load_fat(uint8_t *buffer) {
   }
 }
 
-void load_root(uint8_t *buffer) {
+void fat_load_root(uint8_t *buffer) {
   uint32_t root_sector =
       bpbNumberOfFATs * bpbSectorsPerFAT + bpbReservedSectors;
   uint32_t root_size = 32 * bpbRootEntries / bpbBytesPerSector;
@@ -36,13 +38,15 @@ void load_root(uint8_t *buffer) {
   }
 }
 
-uint32_t load_image(uint8_t *buffer, uint8_t *fat_buffer,
+uint32_t fat_load_image(uint8_t *buffer, uint8_t *fat_buffer,
                     uint16_t img_cluster) {
   uint32_t root_sector =
       bpbNumberOfFATs * bpbSectorsPerFAT + bpbReservedSectors;
   uint32_t root_size = 32 * bpbRootEntries / bpbBytesPerSector;
   uint32_t data_sector = root_sector + root_size;
   uint16_t cluster = img_cluster;
+  print_hex(cluster);
+  print_char(' ');
 
   uint32_t sector_count = 0;
   while (cluster < 0x0FF0) {
@@ -71,6 +75,9 @@ uint32_t load_image(uint8_t *buffer, uint8_t *fat_buffer,
     }
 
     cluster = fat_entry;
+    print_hex(cluster);
+    print_char(' ');
+    sleep(500);
   }
 
   return sector_count;
