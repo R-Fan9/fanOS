@@ -2,6 +2,7 @@
 #include "C/stdint.h"
 #include "C/string.h"
 #include "debug/display.h"
+#include "interrupts/pit.h"
 
 static struct idt_descriptor idt[IDT_SIZE];
 static struct idtr idt_ptr;
@@ -10,6 +11,7 @@ __attribute__((interrupt)) void default_excp_handler(int_frame_t *frame) {
   (void)frame;
   clear_screen();
   print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER - NO ERROR CODE");
+  sleep(200);
 }
 
 __attribute__((interrupt)) void
@@ -18,12 +20,72 @@ default_excp_handler_err_code(int_frame_t *frame, uint32_t error_code) {
   clear_screen();
   print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER - ERROR CODE:");
   print_hex(error_code);
+  sleep(200);
 }
 
 __attribute__((interrupt)) void default_int_handler(int_frame_t *frame) {
   (void)frame;
   clear_screen();
   print_string((uint8_t *)"DEFAULT INTERRUPT HANDLER");
+  sleep(200);
+}
+
+//////////////////////////////////////////////////////////////////////////
+__attribute__((interrupt)) void default_excp_handler0(int_frame_t *frame) {
+  (void)frame;
+  clear_screen();
+  print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER (0) - NO ERROR CODE");
+  sleep(200);
+}
+
+__attribute__((interrupt)) void default_excp_handler1(int_frame_t *frame) {
+  (void)frame;
+  clear_screen();
+  print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER (1) - NO ERROR CODE");
+  sleep(200);
+}
+
+__attribute__((interrupt)) void default_excp_handler2(int_frame_t *frame) {
+  (void)frame;
+  clear_screen();
+  print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER (2) - NO ERROR CODE");
+  sleep(200);
+}
+
+__attribute__((interrupt)) void default_excp_handler3(int_frame_t *frame) {
+  (void)frame;
+  clear_screen();
+  print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER (3) - NO ERROR CODE");
+  sleep(200);
+}
+
+__attribute__((interrupt)) void default_excp_handler4(int_frame_t *frame) {
+  (void)frame;
+  clear_screen();
+  print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER (4) - NO ERROR CODE");
+  sleep(200);
+}
+
+__attribute__((interrupt)) void default_excp_handler5(int_frame_t *frame) {
+  (void)frame;
+  clear_screen();
+  print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER (5) - NO ERROR CODE");
+  sleep(200);
+}
+
+__attribute__((interrupt)) void default_excp_handler6(int_frame_t *frame) {
+  (void)frame;
+  clear_screen();
+  print_string((uint8_t *)"Invalid Opcode");
+  print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER (6) - NO ERROR CODE");
+  sleep(200);
+}
+
+__attribute__((interrupt)) void default_excp_handler7(int_frame_t *frame) {
+  (void)frame;
+  clear_screen();
+  print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER (7) - NO ERROR CODE");
+  sleep(200);
 }
 
 void idt_set_descriptor(uint32_t i, void *irq, uint16_t flags) {
@@ -44,17 +106,27 @@ void idt_init() {
 
   memset((void *)&idt, 0, sizeof(struct idt_descriptor) * IDT_SIZE - 1);
 
+  idt_set_descriptor(0, default_excp_handler0, TRAP_GATE_FLAGS);
+  idt_set_descriptor(1, default_excp_handler1, TRAP_GATE_FLAGS);
+  idt_set_descriptor(2, default_excp_handler2, TRAP_GATE_FLAGS);
+  idt_set_descriptor(3, default_excp_handler3, TRAP_GATE_FLAGS);
+  idt_set_descriptor(4, default_excp_handler4, TRAP_GATE_FLAGS);
+  idt_set_descriptor(5, default_excp_handler5, TRAP_GATE_FLAGS);
+  idt_set_descriptor(6, default_excp_handler6, TRAP_GATE_FLAGS);
+  idt_set_descriptor(7, default_excp_handler7, TRAP_GATE_FLAGS);
+
   // set up exception handlers first (ISRs 0-31)
-  for (uint8_t entry = 0; entry < 32; entry++) {
-    if (entry == 8 || entry == 10 || entry == 11 || entry == 12 ||
-        entry == 13 || entry == 14 || entry == 17 || entry == 21) {
-      // Exception takes an error code
-      idt_set_descriptor(entry, default_excp_handler_err_code, TRAP_GATE_FLAGS);
-    } else {
-      // Exception does not take an error code
-      idt_set_descriptor(entry, default_excp_handler, TRAP_GATE_FLAGS);
-    }
-  }
+  // for (uint8_t entry = 0; entry < 32; entry++) {
+  //   if (entry == 8 || entry == 10 || entry == 11 || entry == 12 ||
+  //       entry == 13 || entry == 14 || entry == 17 || entry == 21) {
+  //     // Exception takes an error code
+  //     idt_set_descriptor(entry, default_excp_handler_err_code,
+  //     TRAP_GATE_FLAGS);
+  //   } else {
+  //     // Exception does not take an error code
+  //     idt_set_descriptor(entry, default_excp_handler, TRAP_GATE_FLAGS);
+  //   }
+  // }
 
   // set up regular interrupts (ISRs 32-255)
   for (uint16_t entry = 32; entry < IDT_SIZE; entry++) {

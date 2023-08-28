@@ -35,11 +35,6 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   setup_interrupts();
 
   uint32_t prekernel_size = *(uint32_t *)PREKERNEL_SIZE_ADDRESS;
-  print_string((uint8_t *)"prekernel size: ");
-  print_dec(prekernel_size);
-  print_string((uint8_t *)" sectors, ");
-  print_dec(prekernel_size * 512);
-  print_string((uint8_t *)" bytes\n\n");
 
   uint32_t entry_count = *(uint32_t *)SMAP_ENTRY_COUNT_ADDRESS;
   SMAP_entry_t *entry = (SMAP_entry_t *)SMAP_ENTRY_ADDRESS;
@@ -68,44 +63,37 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // initialize floppy disk controller
   fd_init(0);
 
-  // load kernel into physical address 0x100000
+  // load root directory table
   uint8_t *buffer = (uint8_t *)0x11000;
   fat_load_root(buffer);
+
+  // find kernel image
   uint8_t *img_addr = fat_find_image((uint8_t *)"KRNL    SYS", buffer);
   if (img_addr) {
+    // first cluster of every entry is at byte 26
+    uint32_t img_cluster = (uint32_t) * (uint32_t *)(img_addr + 26);
 
-    uint16_t img_cluster = (uint16_t) * (uint16_t *)(img_addr + 26);
+    // load FAT table
     fat_load_FAT(buffer);
 
+    // load kernel into physical address 0x100000
     uint8_t *kernel = (uint8_t *)0x100000;
     uint32_t kernel_size = fat_load_image(kernel, buffer, img_cluster);
-    print_string((uint8_t *)"kernel size: ");
-    print_dec(kernel_size);
-    print_string((uint8_t *)" sectors, ");
-    print_dec(kernel_size * 512);
-    print_string((uint8_t *)" bytes\n");
 
     // deinitialize memory region where the kernel is in
     pmmngr_deinit_region(0x100000, kernel_size * 512);
   }
 
-  print_string((uint8_t *)"\npmm total allocation blocks: ");
-  print_dec(pmmngr_get_block_count());
-  print_string((uint8_t *)"\npmm used blocks: ");
-  print_dec(pmmngr_get_used_block_count());
-  print_string((uint8_t *)"\npmm free blocks: ");
-  print_dec(pmmngr_get_free_block_count());
-  print_string((uint8_t *)"\n\n");
+  clear_screen();
+
+  ((void (*)(void))0x100000)();
 
   // initialize virtual memory manager & enable paging
-  // vmmngr_init();
+  vmmngr_init();
 
-  // TODO - once kernel is load to physical address 0x100000,
-  // ((void (*)(void))0xC0000000)() to execute higher half kernel
+  // execute higher half kernel
+  // ((void (*)(void))0xC0000000)()
 
-  // while (1) {
-  //   __asm__ __volatile__("hlt\n\t");
-  // }
 }
 
 void hal_init() {

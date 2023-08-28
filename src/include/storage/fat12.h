@@ -3,6 +3,7 @@
 #ifndef FAT12_H
 #define FAT12_H
 
+void fat_display_image_size(uint32_t sector_count);
 uint8_t *fat_find_image(uint8_t *img_name, uint8_t *buffer);
 void fat_load_FAT(uint8_t *buffer);
 void fat_load_root(uint8_t *buffer);

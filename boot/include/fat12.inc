@@ -106,7 +106,7 @@ find_image:
 	; browse root directory for binary image
 
 	mov		cx, WORD [bpbRootEntries]		; load loop counter
-	mov		di, ROOT_OFFSET					; locate first root directort entry
+	mov		di, ROOT_OFFSET					; locate first root directory entry
 	cld										; clear direction flag
 
 .loop:
@@ -173,7 +173,7 @@ load_image:
 
 	push	WORD ROOT_SEG
 	pop		es
-	mov		dx, WORD [es:di + 0x001A]		; firster cluster of every entry is a byte 16
+	mov		dx, WORD [es:di + 0x001A]		; first cluster of every entry is at byte 26
 	mov		WORD [cluster], dx
 	pop		bx		; get location to write to
 	pop		es
@@ -188,9 +188,11 @@ load_image:
 	pop		es				; BX:BP = EX:BX
 	pop		bx
 	call	ClusterLBA
+
 	xor		cx, cx			; setup the number of sectors to read
 	mov		cl, BYTE [bpbSectorsPerCluster]
 	call	read_sectors
+
 	pop		ecx
 	inc		ecx				; add one more sector to counter
 	push	ecx

@@ -135,6 +135,16 @@ void pmmngr_free_blocks(physical_addr *address, uint32_t blocks) {
   used_blocks -= blocks;
 }
 
+void pmmngr_display_blocks() {
+  print_string((uint8_t *)"\n\npmm total allocation blocks: ");
+  print_dec(pmmngr_get_block_count());
+  print_string((uint8_t *)"\npmm used blocks: ");
+  print_dec(pmmngr_get_used_block_count());
+  print_string((uint8_t *)"\npmm free blocks: ");
+  print_dec(pmmngr_get_free_block_count());
+  clear_screen();
+}
+
 uint32_t pmmngr_get_memory_size() { return memory_size; }
 uint32_t pmmngr_get_block_count() { return max_blocks; }
 uint32_t pmmngr_get_used_block_count() { return used_blocks; }
