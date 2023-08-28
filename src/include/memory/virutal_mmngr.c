@@ -56,7 +56,7 @@ void vmmngr_map_page(physical_addr *phys_addr, virtual_addr *virt_addr) {
   // get page table
   pd_entry *e = vmmngr_pdirectory_get_entry(dir, (virtual_addr)virt_addr);
 
-  if ((*e & PDE_PRESENT) != PDE_PRESENT) {
+  if (!pd_entry_is_present(*e)) {
 
     // page table not present, allocate it
     ptable *table = (ptable *)pmmngr_alloc_block();
@@ -70,7 +70,6 @@ void vmmngr_map_page(physical_addr *phys_addr, virtual_addr *virt_addr) {
     // create a new entry
     pd_entry *entry = vmmngr_pdirectory_get_entry(dir, (virtual_addr)virt_addr);
 
-    // map in the table (Can also just do *entry |= 3) to enable these bits
     pd_entry_add_attrib(entry, PDE_PRESENT);
     pd_entry_add_attrib(entry, PDE_WRITABLE);
     pd_entry_set_frame(entry, (physical_addr)table);
@@ -81,8 +80,6 @@ void vmmngr_map_page(physical_addr *phys_addr, virtual_addr *virt_addr) {
 
   // get page
   pt_entry *page = vmmngr_ptable_get_entry(table, (virtual_addr)virt_addr);
-
-  // map it in (Can also do (*page |= 3 to enable..)
   pt_entry_add_attrib(page, PTE_PRESENT);
   pt_entry_set_frame(page, (physical_addr)phys_addr);
 }
@@ -125,22 +122,20 @@ void vmmngr_init() {
     pt_entry_set_frame(&page, frame);
 
     // add it to the page table
-    kernel_page_table->entries[PAGE_TABLE_INDEX(virt)] = page;
+    default_page_table->entries[PAGE_TABLE_INDEX(virt)] = page;
   }
 
-  // map 1MB physical address to 3GB virtual address
-  // kernel is located here
+  // map physical address at 1MB to virtual address at 3GB (for the kernel)
   for (uint32_t i = 0, frame = 0x100000, virt = 0xC0000000; i < PAGES_PER_TABLE;
        i++, frame += PAGE_SIZE, virt += PAGE_SIZE) {
 
     // create a new page
     pt_entry page = 0;
     pt_entry_add_attrib(&page, PTE_PRESENT);
-    pt_entry_add_attrib(&page, PTE_WRITABLE);
     pt_entry_set_frame(&page, frame);
 
     // add it to the page table
-    default_page_table->entries[PAGE_TABLE_INDEX(virt)] = page;
+    kernel_page_table->entries[PAGE_TABLE_INDEX(virt)] = page;
   }
 
   // create default directory table
@@ -152,20 +147,15 @@ void vmmngr_init() {
   // clear directory table and set it as current
   memset(dir, 0, sizeof(pdirectory));
 
-  for (uint32_t i = 0; i < TABLES_PER_DIR; i++) {
-    pd_entry *entry = &dir->entries[i];
-    pd_entry_add_attrib(entry, PDE_WRITABLE);
-  }
+  pd_entry *default_entry = vmmngr_pdirectory_get_entry(dir, 0x00000000);
+  pd_entry_add_attrib(default_entry, PDE_PRESENT);
+  pd_entry_add_attrib(default_entry, PDE_WRITABLE);
+  pd_entry_set_frame(default_entry, (physical_addr)default_page_table);
 
   pd_entry *kernel_entry = vmmngr_pdirectory_get_entry(dir, 0xC0000000);
   pd_entry_add_attrib(kernel_entry, PDE_PRESENT);
   pd_entry_add_attrib(kernel_entry, PDE_WRITABLE);
-  pd_entry_set_frame(kernel_entry, (physical_addr)default_page_table);
-
-  pd_entry *default_entry = vmmngr_pdirectory_get_entry(dir, 0x00000000);
-  pd_entry_add_attrib(default_entry, PDE_PRESENT);
-  pd_entry_add_attrib(default_entry, PDE_WRITABLE);
-  pd_entry_set_frame(default_entry, (physical_addr)kernel_page_table);
+  pd_entry_set_frame(kernel_entry, (physical_addr)kernel_page_table);
 
   // switch to our page directory
   vmmngr_switch_pdirectory(dir);
@@ -211,3 +201,10 @@ pd_entry *vmmngr_get_table(virtual_addr addr) {
 }
 
 pdirectory *vmmngr_get_directory() { return curdir; }
+
+physical_addr *vmmngr_virt_to_phys(virtual_addr *addr) {
+  pt_entry *page = vmmngr_get_page((virtual_addr)addr);
+  physical_addr *frame = (physical_addr *)PAGE_GET_PHYSICAL_ADDRESS(page);
+  uint32_t offset = (uint32_t)addr & 0xFFF;
+  return frame + offset;
+}

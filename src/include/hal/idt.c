@@ -2,6 +2,7 @@
 #include "C/stdint.h"
 #include "C/string.h"
 #include "debug/display.h"
+#include "interrupts/pit.h"
 
 static struct idt_descriptor idt[IDT_SIZE];
 static struct idtr idt_ptr;
@@ -10,6 +11,7 @@ __attribute__((interrupt)) void default_excp_handler(int_frame_t *frame) {
   (void)frame;
   clear_screen();
   print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER - NO ERROR CODE");
+  sleep(200);
 }
 
 __attribute__((interrupt)) void
@@ -18,12 +20,14 @@ default_excp_handler_err_code(int_frame_t *frame, uint32_t error_code) {
   clear_screen();
   print_string((uint8_t *)"DEFAULT EXCEPTION HANDLER - ERROR CODE:");
   print_hex(error_code);
+  sleep(200);
 }
 
 __attribute__((interrupt)) void default_int_handler(int_frame_t *frame) {
   (void)frame;
   clear_screen();
   print_string((uint8_t *)"DEFAULT INTERRUPT HANDLER");
+  sleep(200);
 }
 
 void idt_set_descriptor(uint32_t i, void *irq, uint16_t flags) {

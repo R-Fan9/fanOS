@@ -6,7 +6,7 @@ CINCLUDE = -I src/include
 CFLAGS = $(CINCLUDE) -std=c17 -m32 -march=i386 -mgeneral-regs-only -ffreestanding -fno-stack-protector -fno-builtin -nostdinc -nostartfiles -nodefaultlibs -fno-PIC -fno-pie -Wall -Wextra -Wno-pointer-sign -Wno-interrupt-service-routine -g -c
 
 LD = ld
-LFLAGS = -m elf_i386 --oformat binary -T target/stage3.ld
+LFLAGS = -m elf_i386 --oformat binary
 
 QEMU = qemu-system-i386 
 QFLAGS = -monitor stdio -fda
@@ -16,32 +16,38 @@ BFLAGS = -qf
 
 bootloader := boot/build/Boot.bin boot/build/KRNLDR.SYS
 
-asm_source_files := $(shell find src/ -name *.asm)
-asm_object_files := $(patsubst src/%.asm, build/%.o, $(asm_source_files))
+include_source_files := $(shell find src/include/ -name *.c)
+include_object_files := $(patsubst src/include/%.c, build/include/%.o, $(include_source_files))
 
-c_source_files := $(shell find src/ -name *.c)
-c_object_files := $(patsubst src/%.c, build/%.o, $(c_source_files))
-
-$(asm_object_files): build/%.o : src/%.asm
+$(include_object_files): build/include/%.o : src/include/%.c
 	mkdir -p $(dir $@) && \
-	$(AS) $(ASFLAGS) $(patsubst build/%.o, src/%.asm, $@) -o $@
+	$(CC) $(CFLAGS) $(patsubst build/include/%.o, src/include/%.c, $@) -o $@
 
-$(c_object_files): build/%.o : src/%.c
+build/stage3.o: src/stage3.c
 	mkdir -p $(dir $@) && \
-	$(CC) $(CFLAGS) $(patsubst build/%.o, src/%.c, $@) -o $@
+	$(CC) $(CFLAGS) $^ -o $@
 
-build/KRNL.SYS: $(asm_object_files) $(c_object_files)
+build/kernel.o: src/kernel.c
 	mkdir -p $(dir $@) && \
-	$(LD) $(LFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) $^ -o $@
+
+build/PRKRNL.SYS: build/stage3.o $(include_object_files)
+	mkdir -p $(dir $@) && \
+	$(LD) $(LFLAGS) -T target/stage3.ld -o $@ $^
+
+build/KRNL.SYS: build/kernel.o $(include_object_files)
+	mkdir -p $(dir $@) && \
+	$(LD) $(LFLAGS) -T target/kernel.ld -o $@ $^
 
 $(bootloader):
 	$(MAKE) -C boot all
 
-bin/OS.bin: $(bootloader) build/KRNL.SYS 
+bin/OS.bin: $(bootloader) build/PRKRNL.SYS build/KRNL.SYS
 	mkdir -p $(dir $@) && \
 	dd if=/dev/zero of=bin/OS.bin bs=512   count=2880           # floppy is 2880 sectors of 512 bytes
 	dd if=boot/build/Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc
 	mcopy -i bin/OS.bin boot/build/KRNLDR.SYS \:\:KRNLDR.SYS
+	mcopy -i bin/OS.bin build/PRKRNL.SYS \:\:PRKRNL.SYS
 	mcopy -i bin/OS.bin build/KRNL.SYS \:\:KRNL.SYS
 
 run: bin/OS.bin

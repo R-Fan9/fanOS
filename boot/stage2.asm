@@ -2,8 +2,8 @@ bits 16
 
 org 0x500
 
-%define IMAGE_PMODE_BASE 0x50000   ; where the kernel is to be loaded to in protected mode
-%define IMAGE_RMODE_BASE 0x3000    ; where the kernel is to be loaded to in real mode
+%define PREKERNEL_PMODE_BASE 0x50000   ; where the prekernel is to be loaded to in protected mode
+%define PREKERNEL_RMODE_BASE 0x3000    ; where the prekernel is to be loaded to in real mode
 
 start:
     jmp	    main				
@@ -23,8 +23,10 @@ start:
 ;	STAGE 2 ENTRY POINT
 ;
 ;	    -Store BIOS information
-;	    -Install GDT; go into protected mode (pmode)
-;	    -Jump to Stage 3 (kernel)
+;	    -Install GDT; Enable A20
+;	    -Load prekernel image
+;	    -Go into protected mode (pmode)
+;	    -Jump to Stage 3 (prekernel)
 ;*******************************************************
 
 main:
@@ -36,7 +38,6 @@ main:
     mov	    es, ax
 
     ; setup stack
-    mov	    ax, 0x0
     mov	    ss, ax
     mov	    sp, 0xFFFF
     sti				; enable interrupts
@@ -57,7 +58,7 @@ main:
     ;----------------------------------------------------
     ; Enable A20 
     ;----------------------------------------------------
-    call    enable_A20_kbrd
+    call    enable_A20_BIOS
 
     ;----------------------------------------------------
     ; Print loading message 
@@ -71,29 +72,27 @@ main:
     call    load_root
 
     ;----------------------------------------------------
-    ; Load kernel
+    ; Load prekernel
     ;----------------------------------------------------
     mov	    ebx, 0	; BX:BP points to buffer to load to
-    mov	    bp, IMAGE_RMODE_BASE
-    mov	    si, image_name
+    mov	    bp, PREKERNEL_RMODE_BASE
+    mov	    si, prekernel_image_name
     call    load_image
-    mov	    DWORD [image_size], ecx
+    mov	    DWORD [prekernel_image_size], ecx
     cmp	    ax, 0
     je	    enter_stage3
-    mov	    si, failure_msg
+    mov	    si, prekernel_failure_msg
     call    print_str
     mov	    ah, 0x0
     int	    0x16	; wait for keypress
-    int	    0x19	; warim boot compyter
+    int	    0x19	; warm boot OS
     cli
-    hlt
-
+    hlt   
+ 
 ;----------------------------------------------------
 ; Enable pmode
 ;----------------------------------------------------
 enter_stage3:
-    mov	    si, success_msg
-    call    print_str
 
     cli
     mov	    eax, cr0
@@ -121,25 +120,25 @@ stage3:
     mov	    esp, 0x90000	; stack begins from 0x90000 
 
 ;----------------------------------------------------
-; Copy kernel to 1MB
+; Copy prekernel to 0x50000
 ;----------------------------------------------------
 copy_image:
-    mov	    eax, DWORD [image_size]
-    mov	    [0x8000], eax	; move the value of kernel image size to address 0xA500
+    mov	    eax, DWORD [prekernel_image_size]
+    mov	    [0x8000], eax	; move the value of prekernel image size to address 0x8000
     movzx   ebx, WORD [bpbBytesPerSector]
     mul	    ebx
     mov	    ebx, 4
     div	    ebx
     cld
-    mov	    esi, IMAGE_RMODE_BASE
-    mov	    edi, IMAGE_PMODE_BASE
+    mov	    esi, PREKERNEL_RMODE_BASE
+    mov	    edi, PREKERNEL_PMODE_BASE
     mov	    ecx, eax
     rep	    movsd		; copy image to its protected mode address
     
-    ;----------------------------------------------------
-    ; Execute kernel
-    ;----------------------------------------------------
-    jmp    CODE_DESC:IMAGE_PMODE_BASE
+;----------------------------------------------------
+; Execute prekernel
+;----------------------------------------------------
+jmp    CODE_DESC:PREKERNEL_PMODE_BASE
 
 stop:
     cli
@@ -148,9 +147,7 @@ stop:
 ;*************************************************;
 ;   Data section
 ;*************************************************;
-image_name   db "KRNL    SYS"
-image_size   db 0
+prekernel_image_name   db "PRKRNL  SYS"
+prekernel_image_size   db 0
 loading_msg	db	"Searching for Operating System...", 0x0A, 0x00
-success_msg	db	"Found Operating System!!!", 0x0A, 0x00
-failure_msg db 0x0D, 0x0A, "*** FATAL: Missing or corrupt KRNL.SYS. Press Any Key to Reboot.", 0x0D, 0x0A, 0x0A, 0x00
-
+prekernel_failure_msg db 0x0D, 0x0A, "*** FATAL: Missing or corrupt PRKRNL.SYS. Press Any Key to Reboot.", 0x0D, 0x0A, 0x0A, 0x00

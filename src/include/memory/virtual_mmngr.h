@@ -36,6 +36,8 @@ typedef struct {
   pd_entry entries[TABLES_PER_DIR];
 } pdirectory;
 
+// convert virtual address to physical address
+physical_addr *vmmngr_virt_to_phys(virtual_addr *addr);
 
 // get page directory
 pdirectory *vmmngr_get_directory();

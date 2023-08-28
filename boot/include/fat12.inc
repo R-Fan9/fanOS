@@ -94,6 +94,7 @@ load_FAT:
 ; ret/ AX => File index number in directory table. -1 if error
 ;*******************************************
 find_image:
+
 	push	cx
 	push	dx
 	push	bx
@@ -105,7 +106,7 @@ find_image:
 	; browse root directory for binary image
 
 	mov		cx, WORD [bpbRootEntries]		; load loop counter
-	mov		di, ROOT_OFFSET					; locate first root directort entrt
+	mov		di, ROOT_OFFSET					; locate first root directory entry
 	cld										; clear direction flag
 
 .loop:
@@ -113,7 +114,7 @@ find_image:
 	mov		cx, 0x000B		; 11 character name
 	mov		si, bx			; image name is in BX
 	push	di
-rep	cmpsb				; test if entry matches
+	rep	cmpsb				; test if entry matches
 	pop		di
 	je		.found
 	pop		cx
@@ -172,7 +173,7 @@ load_image:
 
 	push	WORD ROOT_SEG
 	pop		es
-	mov		dx, WORD [es:di + 0x001A]		; firster cluster of every entry is a byte 16
+	mov		dx, WORD [es:di + 0x001A]		; first cluster of every entry is at byte 26
 	mov		WORD [cluster], dx
 	pop		bx		; get location to write to
 	pop		es
@@ -187,9 +188,11 @@ load_image:
 	pop		es				; BX:BP = EX:BX
 	pop		bx
 	call	ClusterLBA
+
 	xor		cx, cx			; setup the number of sectors to read
 	mov		cl, BYTE [bpbSectorsPerCluster]
 	call	read_sectors
+
 	pop		ecx
 	inc		ecx				; add one more sector to counter
 	push	ecx

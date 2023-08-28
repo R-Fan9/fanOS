@@ -14,7 +14,7 @@ typedef uint32_t physical_addr;
 // block alignment
 #define BLOCK_ALIGN PMMNGR_BLOCK_SIZE
 
-void pmmngr_init(physical_addr start_address, uint32_t size);
+void pmmngr_display_blocks();
 void pmmngr_init_region(physical_addr base, uint32_t size);
 void pmmngr_deinit_region(physical_addr base, uint32_t size);
 physical_addr *pmmngr_alloc_block();
@@ -25,5 +25,6 @@ uint32_t pmmngr_get_memory_size();
 uint32_t pmmngr_get_block_count();
 uint32_t pmmngr_get_used_block_count();
 uint32_t pmmngr_get_free_block_count();
+void pmmngr_init(physical_addr start_address, uint32_t size);
 
 #endif // !PMM_H
