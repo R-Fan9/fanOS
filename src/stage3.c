@@ -13,9 +13,11 @@
 #include "storage/fat12.h"
 #include "storage/floppydisk.h"
 
-#define PREKERNEL_SIZE_ADDRESS 0x8000
 #define SMAP_ENTRY_COUNT_ADDRESS 0x1000
 #define SMAP_ENTRY_ADDRESS 0x1004
+#define MEMMAP_ADDRESS 0x30000
+#define PREKERNEL_ADDRESS 0x50000
+#define PREKERNEL_SIZE_ADDRESS 0x8000
 #define KERNEL_ADDRESS 0x100000
 #define KERNEL_IMAGE "KRNL    SYS"
 
@@ -43,7 +45,7 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   uint32_t total_memory = last_entry->base + last_entry->size - 1;
 
   // initialize physical memory manager
-  pmmngr_init(0x30000, total_memory);
+  pmmngr_init(MEMMAP_ADDRESS, total_memory);
 
   for (uint32_t i = 0; i < entry_count; i++, entry++) {
     // entry with type 1 indicates the memory region is available
@@ -51,15 +53,6 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
       pmmngr_init_region(entry->base, entry->size);
     }
   }
-
-  // deinitialize memory region below 0x15000 for BIOS & Bootloader
-  pmmngr_deinit_region(0x1000, 0x14000);
-
-  // deinitialize memory region where the prekernel is in
-  pmmngr_deinit_region(0x50000, prekernel_size * 512);
-
-  // deinitialize memory region where the memory map is in
-  pmmngr_deinit_region(0x30000, pmmngr_get_block_count() / BLOCKS_PER_BYTE);
 
   // initialize floppy disk controller
   fd_init(0);
@@ -71,6 +64,7 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // find kernel image entry in the root directory table
   uint8_t *img_addr = fat_find_image((uint8_t *)KERNEL_IMAGE, buffer);
   if (img_addr) {
+
     // first cluster of every entry is at byte 26
     uint16_t img_cluster = (uint16_t) * (uint16_t *)(img_addr + 26);
 
@@ -84,13 +78,24 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
     // deinitialize memory region where the kernel is in
     pmmngr_deinit_region((physical_addr)(uint32_t *)KERNEL_ADDRESS,
                          kernel_size * 512);
+
+    // deinitialize memory region below 0x15000 for
+    // BIOS, Bootloader & FDC
+    pmmngr_deinit_region(0x1000, 0x14000);
+
+    // deinitialize memory region where the prekernel is in
+    pmmngr_deinit_region(PREKERNEL_ADDRESS, prekernel_size * 512);
+
+    // deinitialize memory region where the memory map is in
+    pmmngr_deinit_region(MEMMAP_ADDRESS,
+                         pmmngr_get_block_count() / BLOCKS_PER_BYTE);
+
+    // initialize virtual memory manager & enable paging
+    vmmngr_init();
+
+    // execute higher half kernel
+    ((void (*)(void))0xC0000000)();
   }
-
-  // initialize virtual memory manager & enable paging
-  vmmngr_init();
-
-  // execute higher half kernel
-  ((void (*)(void))0xC0000000)();
 }
 
 void hal_init() {
