@@ -130,4 +130,7 @@ void dma_reset(uint8_t dma);
 // unmask all registers
 void dma_unmask_all(uint8_t dma);
 
+// initialize DMA for floppy disk controller
+void dma_init_floppy(uint8_t *buffer, unsigned length);
+
 #endif // !DMA_H
