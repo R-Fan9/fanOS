@@ -1,5 +1,6 @@
 #include "dma.h"
 #include "C/stdint.h"
+#include "debug/display.h"
 #include "ports/io.h"
 #include "storage/floppydisk.h"
 
@@ -130,11 +131,11 @@ void dma_set_mode(uint8_t channel, uint8_t mode) {
 }
 
 void dma_set_read(uint8_t channel) {
-  dma_set_mode(channel, DMA_MODE_READ_TRANSFER | DMA_MODE_TRANSFER_SINGLE);
+  dma_set_mode(channel, DMA_MODE_READ_TRANSFER | DMA_MODE_TRANSFER_SINGLE | DMA_MODE_MASK_AUTO);
 }
 
 void dma_set_write(uint8_t channel) {
-  dma_set_mode(channel, DMA_MODE_WRITE_TRANSFER | DMA_MODE_TRANSFER_SINGLE);
+  dma_set_mode(channel, DMA_MODE_WRITE_TRANSFER | DMA_MODE_TRANSFER_SINGLE | DMA_MODE_MASK_AUTO);
 }
 
 void dma_mask_channel(uint8_t channel) {
@@ -152,7 +153,7 @@ void dma_unmask_channel(uint8_t channel) {
 }
 
 void dma_reset_flipflop(uint8_t dma) {
-  if (dma < 2) {
+  if (dma > 1) {
     return;
   }
 
@@ -188,9 +189,7 @@ void dma_init_floppy(uint8_t *buffer, unsigned length) {
 
   dma_set_address(FDC_DMA_CHANNEL, a.byte[0], a.byte[1]);
   dma_reset_flipflop(1); // flip-flop reset on DMA 1
-
-  dma_set_address(FDC_DMA_CHANNEL, c.byte[0], c.byte[1]);
-  dma_set_read(FDC_DMA_CHANNEL);
+  dma_set_count(FDC_DMA_CHANNEL, c.byte[0], c.byte[1]);
 
   // unmask all DMA channels
   dma_unmask_all();

@@ -8,9 +8,6 @@
 #include "interrupts/pit.h"
 #include "ports/io.h"
 
-void fd_dma_init();
-void fd_dma_read();
-void fd_dma_write();
 void fd_control_motor(bool on);
 void fd_wait_irq6();
 void fd_write_dor(uint8_t val);
@@ -33,35 +30,6 @@ static uint8_t current_drive = 0;
 static uint8_t fd_irq6_stat = 0;
 
 const uint32_t FD_SECTORS_PER_TRACK = 18;
-
-void fd_dma_init() {
-  outb(0x0a, 0x06); // mask dma channel 2
-  outb(0xd8, 0xff); // reset master flip-flop
-  outb(0x04, 0);    // address=0x1000
-  outb(0x04, 0x10);
-  outb(0xd8, 0xff); // reset master flip-flop
-  // count to 0x23ff (number of bytes in a 3.5" floppy disk track)
-  outb(0x05, 0xff);
-  outb(0x05, 0x23);
-  outb(0x80, 0);    // external page register = 0
-  outb(0x0a, 0x02); // unmask dma channel 2
-}
-
-// prepare DMA for read transfer
-void fd_dma_read() {
-  outb(0x0a, 0x06); // mask dma channel 2
-  // single transfer, address increment, autoinit, read, channel 2
-  outb(0x0b, 0x56);
-  outb(0x0a, 0x02); // unmask dma channel 2
-}
-
-// prepare DMA for write transer
-void fd_dma_write() {
-  outb(0x0a, 0x06); // mask dma channel 2
-  // single transfer, address increment, autoinit, write, channel 2
-  outb(0x0b, 0x5a);
-  outb(0x0a, 0x02); // unmask dma channel 2
-}
 
 void fd_control_motor(bool on) {
   if (current_drive > 3) {
@@ -252,10 +220,7 @@ void fd_read_sector_impl(uint8_t head, uint8_t track, uint8_t sector) {
 
   uint32_t st0, cy1;
 
-  dma_init_floppy((uint8_t *)DMA_BUFFER, 512);
-
   dma_set_read(FDC_DMA_CHANNEL);
-
   fd_send_command(FD_CMD_READ_SECT | FD_CMD_EXT_MULTITRACK | FD_CMD_EXT_SKIP |
                   FD_CMD_EXT_DENSITY);
   fd_send_command(head << 2 | current_drive);
@@ -296,6 +261,9 @@ uint8_t *fd_read_sector(int32_t sector_lba) {
 }
 
 void fd_init(uint32_t drive) {
+
+  // initialize DMA for floppy disk controller
+  dma_init_floppy((uint8_t *)DMA_BUFFER, 512);
 
   fd_set_working_drive(drive);
 
