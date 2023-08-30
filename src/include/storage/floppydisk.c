@@ -2,6 +2,7 @@
 #include "C/stdbool.h"
 #include "C/stdint.h"
 #include "debug/display.h"
+#include "hal/dma.h"
 #include "hal/idt.h"
 #include "hal/pic.h"
 #include "interrupts/pit.h"
@@ -17,7 +18,7 @@ uint8_t fd_read_status();
 void fd_send_command(uint8_t cmd);
 uint8_t fd_read_data();
 void fd_write_ccr(uint8_t val);
-void fd_read_sector_imp(uint8_t head, uint8_t track, uint8_t sector);
+void fd_read_sector_impl(uint8_t head, uint8_t track, uint8_t sector);
 void fd_drive_data(uint32_t stepr, uint32_t loadt, uint32_t unloadt, bool dma);
 int32_t fd_calibrate(uint32_t drive);
 void fd_check_int(uint32_t *st0, uint32_t *cy1);
@@ -125,37 +126,6 @@ uint8_t fd_read_data() {
 }
 
 void fd_write_ccr(uint8_t val) { outb(FD_CTRL, val); }
-
-void fd_read_sector_imp(uint8_t head, uint8_t track, uint8_t sector) {
-  uint32_t next_sector = sector + 1;
-  if (next_sector >= FD_SECTORS_PER_TRACK) {
-    next_sector = FD_SECTORS_PER_TRACK;
-  }
-
-  uint32_t st0, cy1;
-  fd_dma_read();
-  fd_send_command(FD_CMD_READ_SECT | FD_CMD_EXT_MULTITRACK | FD_CMD_EXT_SKIP |
-                  FD_CMD_EXT_DENSITY);
-  fd_send_command(head << 2 | current_drive);
-  fd_send_command(track);
-  fd_send_command(head);
-  fd_send_command(sector);
-  fd_send_command(FD_SECTOR_DTL_512);
-  fd_send_command(next_sector);
-  fd_send_command(FD_GAP3_LENGTH_3_5);
-  fd_send_command(0xFF);
-
-  // wait for IRQ6
-  fd_wait_irq6();
-
-  // read 7 bytes status info
-  for (uint32_t i = 0; i < 7; i++) {
-    fd_read_data();
-  }
-
-  // let FDC know that the interrupt is handled
-  fd_check_int(&st0, &cy1);
-}
 
 // pass controlling information to the FDC about the drive connected to it
 void fd_drive_data(uint32_t stepr, uint32_t loadt, uint32_t unloadt, bool dma) {
@@ -274,6 +244,41 @@ uint32_t fd_chs_to_lba(uint16_t cluster) {
   return (cluster - 2) * bpbSectorsPerCluster;
 }
 
+void fd_read_sector_impl(uint8_t head, uint8_t track, uint8_t sector) {
+  uint32_t next_sector = sector + 1;
+  if (next_sector >= FD_SECTORS_PER_TRACK) {
+    next_sector = FD_SECTORS_PER_TRACK;
+  }
+
+  uint32_t st0, cy1;
+
+  dma_init_floppy((uint8_t *)DMA_BUFFER, 512);
+
+  dma_set_read(FDC_DMA_CHANNEL);
+
+  fd_send_command(FD_CMD_READ_SECT | FD_CMD_EXT_MULTITRACK | FD_CMD_EXT_SKIP |
+                  FD_CMD_EXT_DENSITY);
+  fd_send_command(head << 2 | current_drive);
+  fd_send_command(track);
+  fd_send_command(head);
+  fd_send_command(sector);
+  fd_send_command(FD_SECTOR_DTL_512);
+  fd_send_command(next_sector);
+  fd_send_command(FD_GAP3_LENGTH_3_5);
+  fd_send_command(0xFF);
+
+  // wait for IRQ6
+  fd_wait_irq6();
+
+  // read 7 bytes status info
+  for (uint32_t i = 0; i < 7; i++) {
+    fd_read_data();
+  }
+
+  // let FDC know that the interrupt is handled
+  fd_check_int(&st0, &cy1);
+}
+
 uint8_t *fd_read_sector(int32_t sector_lba) {
   if (current_drive > 3) {
     return 0;
@@ -285,14 +290,12 @@ uint8_t *fd_read_sector(int32_t sector_lba) {
   if (fd_seek(track, head) != 0) {
     return 0;
   }
-  fd_read_sector_imp(head, track, sector);
+  fd_read_sector_impl(head, track, sector);
   fd_control_motor(false);
-  return (uint8_t *)DMA_BUFFER_BASE;
+  return (uint8_t *)DMA_BUFFER;
 }
 
 void fd_init(uint32_t drive) {
-
-  fd_dma_init();
 
   fd_set_working_drive(drive);
 

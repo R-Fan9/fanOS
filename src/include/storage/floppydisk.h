@@ -4,7 +4,8 @@
 #ifndef FLOPPYDISK_H
 #define FLOPPYDISK_H
 
-#define DMA_BUFFER_BASE 0x1000;
+#define DMA_BUFFER 0x1000
+#define FDC_DMA_CHANNEL 2
 
 // BIOS Parameter Block (BPB)
 enum BPB {

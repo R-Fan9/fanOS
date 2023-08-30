@@ -1,6 +1,7 @@
 #include "dma.h"
 #include "C/stdint.h"
 #include "ports/io.h"
+#include "storage/floppydisk.h"
 
 void dma_set_address(uint8_t channel, uint8_t low, uint8_t high) {
 
@@ -125,17 +126,15 @@ void dma_set_mode(uint8_t channel, uint8_t mode) {
 
   dma_mask_channel(channel);
   outb(dma_mode_reg, chan | mode);
-  dma_unmask_all(dma);
+  dma_unmask_all();
 }
 
 void dma_set_read(uint8_t channel) {
-  dma_set_mode(channel, DMA_MODE_READ_TRANSFER | DMA_MODE_TRANSFER_SINGLE |
-                            DMA_MODE_MASK_AUTO);
+  dma_set_mode(channel, DMA_MODE_READ_TRANSFER | DMA_MODE_TRANSFER_SINGLE);
 }
 
 void dma_set_write(uint8_t channel) {
-  dma_set_mode(channel, DMA_MODE_WRITE_TRANSFER | DMA_MODE_TRANSFER_SINGLE |
-                            DMA_MODE_MASK_AUTO);
+  dma_set_mode(channel, DMA_MODE_WRITE_TRANSFER | DMA_MODE_TRANSFER_SINGLE);
 }
 
 void dma_mask_channel(uint8_t channel) {
@@ -164,12 +163,35 @@ void dma_reset_flipflop(uint8_t dma) {
   outb(dma_flipflop_reg, 0xFF);
 }
 
-void dma_reset(uint8_t dma) {
+void dma_reset() {
   // doesn't matter what value is written to this register
   outb(DMA0_TEMP_REG, 0xFF);
 }
 
-void dma_unmask_all(uint8_t dma) {
+void dma_unmask_all() {
   // doesn't matter what value is written to this register
   outb(DMA1_UNMASK_ALL_REG, 0xFF);
+}
+
+void dma_init_floppy(uint8_t *buffer, unsigned length) {
+  union {
+    uint8_t byte[4];
+    uint64_t l;
+  } a, c;
+
+  a.l = (unsigned)buffer;
+  c.l = (unsigned)length - 1;
+
+  dma_reset();
+  dma_mask_channel(FDC_DMA_CHANNEL);
+  dma_reset_flipflop(1); // flip-flop reset on DMA 1
+
+  dma_set_address(FDC_DMA_CHANNEL, a.byte[0], a.byte[1]);
+  dma_reset_flipflop(1); // flip-flop reset on DMA 1
+
+  dma_set_address(FDC_DMA_CHANNEL, c.byte[0], c.byte[1]);
+  dma_set_read(FDC_DMA_CHANNEL);
+
+  // unmask all DMA channels
+  dma_unmask_all();
 }
