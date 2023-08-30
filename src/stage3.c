@@ -54,6 +54,17 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
     }
   }
 
+  // deinitialize memory region below 0x15000 for
+  // BIOS, Bootloader & FDC
+  pmmngr_deinit_region(0x1000, 0x14000);
+
+  // deinitialize memory region where the memory map is in
+  pmmngr_deinit_region(MEMMAP_ADDRESS,
+                       pmmngr_get_block_count() / BLOCKS_PER_BYTE);
+
+  // deinitialize memory region where the prekernel is in
+  pmmngr_deinit_region(PREKERNEL_ADDRESS, prekernel_size * 512);
+
   // initialize floppy disk controller
   fd_init(0);
 
@@ -78,17 +89,6 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
     // deinitialize memory region where the kernel is in
     pmmngr_deinit_region((physical_addr)(uint32_t *)KERNEL_ADDRESS,
                          kernel_size * 512);
-
-    // deinitialize memory region below 0x15000 for
-    // BIOS, Bootloader & FDC
-    pmmngr_deinit_region(0x1000, 0x14000);
-
-    // deinitialize memory region where the prekernel is in
-    pmmngr_deinit_region(PREKERNEL_ADDRESS, prekernel_size * 512);
-
-    // deinitialize memory region where the memory map is in
-    pmmngr_deinit_region(MEMMAP_ADDRESS,
-                         pmmngr_get_block_count() / BLOCKS_PER_BYTE);
 
     // initialize virtual memory manager & enable paging
     vmmngr_init();
