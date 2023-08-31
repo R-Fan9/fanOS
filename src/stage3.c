@@ -2,6 +2,8 @@
 #include "C/stdint.h"
 #include "C/string.h"
 #include "debug/display.h"
+#include "filesystem/fat12.h"
+#include "filesystem/floppydisk.h"
 #include "hal/gdt.h"
 #include "hal/idt.h"
 #include "hal/pic.h"
@@ -10,8 +12,6 @@
 #include "interrupts/pit.h"
 #include "memory/physical_mmngr.h"
 #include "memory/virtual_mmngr.h"
-#include "filesystem/fat12.h"
-#include "filesystem/floppydisk.h"
 
 #define SMAP_ENTRY_COUNT_ADDRESS 0x1000
 #define SMAP_ENTRY_ADDRESS 0x1004
@@ -54,10 +54,6 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
     }
   }
 
-  // deinitialize memory region below 0x15000 for
-  // BIOS, Bootloader & FDC
-  pmmngr_deinit_region(0x1000, 0x14000);
-
   // deinitialize memory region where the memory map is in
   pmmngr_deinit_region(MEMMAP_ADDRESS,
                        pmmngr_get_block_count() / BLOCKS_PER_BYTE);
@@ -85,6 +81,10 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
     // load kernel into physical address 0x100000
     uint8_t *kernel = (uint8_t *)KERNEL_ADDRESS;
     uint32_t kernel_size = fat_load_image(kernel, buffer, img_cluster);
+
+    // deinitialize memory region below 0x15000 for
+    // BIOS, Bootloader & FDC
+    pmmngr_deinit_region(0x1000, 0x14000);
 
     // deinitialize memory region where the kernel is in
     pmmngr_deinit_region((physical_addr)(uint32_t *)KERNEL_ADDRESS,
