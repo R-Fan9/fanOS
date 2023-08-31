@@ -10,8 +10,8 @@
 #include "interrupts/pit.h"
 #include "memory/physical_mmngr.h"
 #include "memory/virtual_mmngr.h"
-#include "storage/fat12.h"
-#include "storage/floppydisk.h"
+#include "filesystem/fat12.h"
+#include "filesystem/floppydisk.h"
 
 #define SMAP_ENTRY_COUNT_ADDRESS 0x1000
 #define SMAP_ENTRY_ADDRESS 0x1004
