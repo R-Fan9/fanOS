@@ -21,7 +21,7 @@ FILE vol_open_file(const uint8_t *fname) {
 }
 
 void vol_read_file(PFILE file, uint8_t *buffer, uint32_t size) {
-  if (file) {
+  if (!file) {
     PFILESYSTEM system = file_system[file->device_id - 'a'];
     if (system) {
       system->read(file, buffer, size);
@@ -39,15 +39,19 @@ void vol_close_file(PFILE file) {
 }
 
 void vol_register_filesystem(PFILESYSTEM system, uint32_t device_id) {
-  if (device_id < DEVICE_MAX) {
-    file_system[device_id] = system;
+  if (device_id > DEVICE_MAX) {
+    return;
   }
+  file_system[device_id] = system;
 }
+
 void vol_register_filesystem_by_id(uint32_t device_id) {
-  if (device_id < DEVICE_MAX) {
-    file_system[device_id] = 0;
+  if (device_id > DEVICE_MAX) {
+    return;
   }
+  file_system[device_id] = 0;
 }
+
 void vol_unregister_filesystem(PFILESYSTEM system) {
   for (uint8_t i = 0; i < DEVICE_MAX; i++) {
     if (file_system[i] == system) {

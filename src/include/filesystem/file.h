@@ -18,6 +18,7 @@ typedef struct _FILE {
   uint32_t position;
   uint32_t current_cluster;
   uint32_t device_id;
+
 } FILE, *PFILE;
 
 typedef struct _FILE_SYSTEM {

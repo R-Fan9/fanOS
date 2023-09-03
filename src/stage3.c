@@ -64,6 +64,9 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // initialize floppy disk controller
   fd_init(0);
 
+  // initialize file system
+  fat_init();
+  
   // load root directory table
   uint8_t *buffer = (uint8_t *)0x11000;
   fat_load_root(buffer);
