@@ -16,7 +16,7 @@ MOUNT_INFO mount_info;
 // file allocation table (FAT)
 uint8_t FAT[SECTOR_SIZE * 2];
 
-void fat_display_file_size(uint32_t sector_count) {
+void fat_display_image_size(uint32_t sector_count) {
   print_string((uint8_t *)"image size: ");
   print_dec(sector_count);
   print_string((uint8_t *)" sectors, ");

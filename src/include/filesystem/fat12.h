@@ -46,7 +46,8 @@ FILE fat_open_file(const uint8_t *fname);
 void fat_mount();
 void fat_init();
 
-void fat_display_file_size(uint32_t sector_count);
+// !DEPRECATED METHODS
+void fat_display_image_size(uint32_t sector_count);
 uint8_t *fat_find_image(uint8_t *img_name, uint8_t *buffer);
 void fat_load_FAT(uint8_t *buffer);
 void fat_load_root(uint8_t *buffer);

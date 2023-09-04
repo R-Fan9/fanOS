@@ -78,8 +78,7 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
     kernel_size += SECTOR_SIZE;
   }
 
-  // deinitialize memory region below 0x15000 for
-  // BIOS, Bootloader & FDC
+  // deinitialize memory region below 0x15000 for BIOS & Bootloader
   pmmngr_deinit_region(0x1000, 0x14000);
 
   // deinitialize memory region where the kernel is in
