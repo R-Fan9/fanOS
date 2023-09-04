@@ -26,13 +26,13 @@ typedef struct _FILE_SYSTEM {
   uint8_t name[8];
   FILE (*directory)(const uint8_t *dirname);
   void (*mount)();
-  void (*read)(PFILE file, uint8_t *buffer, uint32_t size);
+  void (*read)(PFILE file, uint8_t *buffer);
   void (*close)(PFILE);
-  FILE (*open)(const uint8_t *filename);
+  FILE (*open)(const uint8_t *fname);
 } FILESYSTEM, *PFILESYSTEM;
 
 FILE vol_open_file(const uint8_t *fname);
-void vol_read_file(PFILE file, uint8_t *buffer, uint32_t size);
+void vol_read_file(PFILE file, uint8_t *buffer);
 void vol_close_file(PFILE file);
 void vol_register_filesystem(PFILESYSTEM system, uint32_t device_id);
 void vol_register_filesystem_by_id(uint32_t device_id);

@@ -1,5 +1,6 @@
 #include "file.h"
 #include "C/stdint.h"
+#include "debug/display.h"
 
 #define DEVICE_MAX 26
 
@@ -10,21 +11,11 @@ uint8_t *get_filename(uint8_t *fname);
 uint8_t get_device(uint8_t *fname);
 FILE vol_open_file_impl(uint8_t *fname, uint8_t device);
 
-FILE vol_open_file(const uint8_t *fname) {
-  if (!fname) {
-    return invalid_file();
-  }
-
-  uint8_t *filename = get_filename((uint8_t *)fname);
-  uint8_t device = get_device((uint8_t *)fname);
-  return vol_open_file_impl(filename, device);
-}
-
-void vol_read_file(PFILE file, uint8_t *buffer, uint32_t size) {
-  if (!file) {
+void vol_read_file(PFILE file, uint8_t *buffer) {
+  if (file) {
     PFILESYSTEM system = file_system[file->device_id - 'a'];
     if (system) {
-      system->read(file, buffer, size);
+      system->read(file, buffer);
     }
   }
 }
@@ -58,6 +49,16 @@ void vol_unregister_filesystem(PFILESYSTEM system) {
       file_system[i] = 0;
     }
   }
+}
+
+FILE vol_open_file(const uint8_t *fname) {
+  if (!fname) {
+    return invalid_file();
+  }
+
+  uint8_t *filename = get_filename((uint8_t *)fname);
+  uint8_t device = get_device((uint8_t *)fname);
+  return vol_open_file_impl(filename, device);
 }
 
 FILE vol_open_file_impl(uint8_t *fname, uint8_t device) {
