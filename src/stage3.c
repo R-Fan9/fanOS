@@ -87,6 +87,8 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // initialize virtual memory manager & enable paging
   vmmngr_init();
 
+  clear_screen();
+
   // execute higher half kernel
   ((void (*)(void))0xC0000000)();
 }
