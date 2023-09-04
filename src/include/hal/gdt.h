@@ -3,7 +3,7 @@
 #ifndef GDT_H
 #define GDT_H
 
-#define GDT_SIZE 3
+#define GDT_SIZE 6
 
 // set access bit
 #define GDT_DESC_ACCESS 0x0001 // 00000001

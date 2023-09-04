@@ -11,6 +11,7 @@
 #include "interrupts/exceptions.h"
 #include "interrupts/keyboard.h"
 #include "interrupts/pit.h"
+#include "interrupts/syscall.h"
 #include "memory/physical_mmngr.h"
 #include "memory/virtual_mmngr.h"
 
@@ -113,6 +114,9 @@ void setup_interrupts() {
   // set up exception handlers (i.e, divide by 0, page fault..)
   idt_set_descriptor(14, page_fault_handler, TRAP_GATE_FLAGS);
 
+  // set up software interrupts (system call handler)
+  idt_set_descriptor(0x80, syscall_dispatcher, INT_GATE_USER_FLAGS);
+
   // add ISRs for PIC hardware interrupts
   idt_set_descriptor(0x20, timer_irq0_handler, INT_GATE_FLAGS);
   idt_set_descriptor(0x21, keyboard_irq1_handler, INT_GATE_FLAGS);
@@ -121,6 +125,7 @@ void setup_interrupts() {
   // enable PIC IRQ interrupts after setting up their descriptors
   clear_irq_mask(0); // enable timer - IRQ0
   clear_irq_mask(1); // enable keyboard - IRQ1
+  clear_irq_mask(2); // enable PIC2 line - IRQ2
   clear_irq_mask(6); // enable floppy disk - IRQ6
 
   // set default PIT Timer IRQ0 rate - ~1000hz
