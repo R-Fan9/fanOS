@@ -137,12 +137,12 @@ void fat_read_file(PFILE file, uint8_t *buffer) {
     return;
   }
 
-  uint32_t data_sector =
-      fd_chs_to_lba(file->current_cluster) + mount_info.data_offset;
+  uint32_t cur_cluster = file->current_cluster;
+  uint32_t data_sector = fd_chs_to_lba(cur_cluster) + mount_info.data_offset;
   uint8_t *sector = fd_read_sector(data_sector);
   memcpy(buffer, sector, SECTOR_SIZE);
 
-  uint32_t fat_offset = (file->current_cluster / 2) + file->current_cluster;
+  uint32_t fat_offset = (cur_cluster / 2) + cur_cluster;
   uint32_t fat_sector = fat_offset / SECTOR_SIZE + 1;
   uint32_t fat_entry_offset = fat_offset % SECTOR_SIZE;
 
@@ -154,10 +154,10 @@ void fat_read_file(PFILE file, uint8_t *buffer) {
   sector = fd_read_sector(fat_sector + 1);
   memcpy(FAT + SECTOR_SIZE, sector, SECTOR_SIZE);
 
-  uint16_t next_cluster = *(uint16_t *)&FAT[fat_offset];
+  uint16_t next_cluster = *(uint16_t *)&FAT[fat_entry_offset];
 
   // test if the cluster is odd or even
-  if (file->current_cluster % 2 == 0) {
+  if (cur_cluster % 2 == 0) {
     // even cluster -> takes the lower half 12 bits
     next_cluster &= 0xFFF;
   } else {

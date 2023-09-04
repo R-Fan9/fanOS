@@ -8,7 +8,9 @@ uint8_t *strchr(const uint8_t *str, const uint8_t c) {
   do {
     if (*ptr == c)
       return ptr;
-  } while (*ptr++);
+
+    ptr++;
+  } while (*ptr != '\0');
 
   return 0;
 }
@@ -21,7 +23,9 @@ uint8_t *strcpy(uint8_t *dst, const uint8_t *src) {
 }
 
 int32_t strncmp(const uint8_t *str1, const uint8_t *str2, uint8_t len) {
-  while (len > 0 && *str1++ == *str2++) {
+  while (len > 0 && *str1 == *str2) {
+    str1++;
+    str2++;
     len--;
   }
   if (len == 0)
