@@ -2,6 +2,9 @@
 #include "C/stdint.h"
 #include "C/string.h"
 #include "debug/display.h"
+#include "filesystem/fat12.h"
+#include "filesystem/file.h"
+#include "filesystem/floppydisk.h"
 #include "hal/gdt.h"
 #include "hal/idt.h"
 #include "hal/pic.h"
@@ -10,8 +13,6 @@
 #include "interrupts/pit.h"
 #include "memory/physical_mmngr.h"
 #include "memory/virtual_mmngr.h"
-#include "filesystem/fat12.h"
-#include "filesystem/floppydisk.h"
 
 #define SMAP_ENTRY_COUNT_ADDRESS 0x1000
 #define SMAP_ENTRY_ADDRESS 0x1004
@@ -54,10 +55,6 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
     }
   }
 
-  // deinitialize memory region below 0x15000 for
-  // BIOS, Bootloader & FDC
-  pmmngr_deinit_region(0x1000, 0x14000);
-
   // deinitialize memory region where the memory map is in
   pmmngr_deinit_region(MEMMAP_ADDRESS,
                        pmmngr_get_block_count() / BLOCKS_PER_BYTE);
@@ -68,34 +65,30 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // initialize floppy disk controller
   fd_init(0);
 
-  // load root directory table
-  uint8_t *buffer = (uint8_t *)0x11000;
-  fat_load_root(buffer);
+  // initialize file system
+  fat_init();
 
-  // find kernel image entry in the root directory table
-  uint8_t *img_addr = fat_find_image((uint8_t *)KERNEL_IMAGE, buffer);
-  if (img_addr) {
+  // load kernel into physical address 0x100000
+  FILE kernel = vol_open_file((uint8_t *)KERNEL_IMAGE);
+  uint8_t *buffer = (uint8_t *)KERNEL_ADDRESS;
+  uint32_t kernel_size = 0;
 
-    // first cluster of every entry is at byte 26
-    uint16_t img_cluster = (uint16_t) * (uint16_t *)(img_addr + 26);
-
-    // load FAT table
-    fat_load_FAT(buffer);
-
-    // load kernel into physical address 0x100000
-    uint8_t *kernel = (uint8_t *)KERNEL_ADDRESS;
-    uint32_t kernel_size = fat_load_image(kernel, buffer, img_cluster);
-
-    // deinitialize memory region where the kernel is in
-    pmmngr_deinit_region((physical_addr)(uint32_t *)KERNEL_ADDRESS,
-                         kernel_size * 512);
-
-    // initialize virtual memory manager & enable paging
-    vmmngr_init();
-
-    // execute higher half kernel
-    ((void (*)(void))0xC0000000)();
+  while (!kernel.end) {
+    vol_read_file(&kernel, &buffer[kernel_size]);
+    kernel_size += SECTOR_SIZE;
   }
+
+  // deinitialize memory region below 0x15000 for BIOS & Bootloader
+  pmmngr_deinit_region(0x1000, 0x14000);
+
+  // deinitialize memory region where the kernel is in
+  pmmngr_deinit_region((physical_addr)(uint32_t *)KERNEL_ADDRESS, kernel_size);
+
+  // initialize virtual memory manager & enable paging
+  vmmngr_init();
+
+  // execute higher half kernel
+  ((void (*)(void))0xC0000000)();
 }
 
 void hal_init() {

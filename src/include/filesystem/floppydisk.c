@@ -2,6 +2,7 @@
 #include "C/stdbool.h"
 #include "C/stdint.h"
 #include "debug/display.h"
+#include "fat12.h"
 #include "hal/dma.h"
 #include "hal/idt.h"
 #include "hal/pic.h"
@@ -209,7 +210,7 @@ void fd_lba_to_chs(int32_t lba, int32_t *head, int32_t *track,
 }
 
 uint32_t fd_chs_to_lba(uint16_t cluster) {
-  return (cluster - 2) * bpbSectorsPerCluster;
+  return (cluster - 2) * SECTORS_PER_CLUSTER;
 }
 
 void fd_read_sector_impl(uint8_t head, uint8_t track, uint8_t sector) {

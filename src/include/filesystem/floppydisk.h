@@ -7,19 +7,6 @@
 #define DMA_BUFFER 0x1000
 #define FDC_DMA_CHANNEL 2
 
-// BIOS Parameter Block (BPB)
-enum BPB {
-  bpbBytesPerSector = 512,
-  bpbSectorsPerCluster = 1,
-  bpbReservedSectors = 1,
-  bpbNumberOfFATs = 2,
-  bpbRootEntries = 224,
-  bpbTotalSectors = 2880,
-  bpbSectorsPerFAT = 9,
-  bpbSectorsPerTrack = 18,
-  bpbHeadsPerCylinder = 2
-};
-
 enum FD_IO {
   FD_DOR = 0x3F2,  // digital output register
   FD_MSR = 0x3F4,  // main status register

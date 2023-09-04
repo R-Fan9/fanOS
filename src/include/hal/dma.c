@@ -1,8 +1,8 @@
 #include "dma.h"
 #include "C/stdint.h"
 #include "debug/display.h"
-#include "ports/io.h"
 #include "filesystem/floppydisk.h"
+#include "ports/io.h"
 
 void dma_set_address(uint8_t channel, uint8_t low, uint8_t high) {
 
@@ -131,11 +131,13 @@ void dma_set_mode(uint8_t channel, uint8_t mode) {
 }
 
 void dma_set_read(uint8_t channel) {
-  dma_set_mode(channel, DMA_MODE_READ_TRANSFER | DMA_MODE_TRANSFER_SINGLE | DMA_MODE_MASK_AUTO);
+  dma_set_mode(channel, DMA_MODE_READ_TRANSFER | DMA_MODE_TRANSFER_SINGLE |
+                            DMA_MODE_MASK_AUTO);
 }
 
 void dma_set_write(uint8_t channel) {
-  dma_set_mode(channel, DMA_MODE_WRITE_TRANSFER | DMA_MODE_TRANSFER_SINGLE | DMA_MODE_MASK_AUTO);
+  dma_set_mode(channel, DMA_MODE_WRITE_TRANSFER | DMA_MODE_TRANSFER_SINGLE |
+                            DMA_MODE_MASK_AUTO);
 }
 
 void dma_mask_channel(uint8_t channel) {
