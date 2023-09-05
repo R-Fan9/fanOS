@@ -2,8 +2,8 @@
 #include "C/string.h"
 #include "debug/display.h"
 
-static struct gdt_descriptor gdt[GDT_SIZE];
-static struct gdtr gdt_ptr;
+static gdt_descriptor gdt[GDT_SIZE];
+static gdtr gdt_ptr;
 
 void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
                         uint8_t access, uint8_t grand) {
@@ -11,7 +11,7 @@ void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
     return;
   }
 
-  memset(&gdt[i], 0, sizeof(struct gdt_descriptor));
+  memset(&gdt[i], 0, sizeof(gdt_descriptor));
 
   gdt[i].base_low = base & 0xFFFF;
   gdt[i].base_mid = (base >> 16) & 0xFF;
@@ -25,7 +25,7 @@ void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
 void gdt_init() {
 
   // set up gdtr
-  gdt_ptr.limit = sizeof(struct gdt_descriptor) * GDT_SIZE - 1;
+  gdt_ptr.limit = sizeof(gdt_descriptor) * GDT_SIZE - 1;
   gdt_ptr.base = (uint32_t)&gdt;
 
   uint8_t default_code_seg = GDT_DESC_READWRITE;

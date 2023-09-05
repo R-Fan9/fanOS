@@ -7,7 +7,7 @@ void *malloc(const uint32_t size) {
   void *ptr = 0;
 
   __asm__ __volatile__("int $0x80"
-                       : "=d"(ptr)
+                       : "=a"(ptr)
                        : "a"(SYSCALL_MALLOC), "b"(size));
 
   return ptr;

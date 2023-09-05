@@ -15,11 +15,12 @@ void *syscalls[MAX_SYSCALLS] = {
 };
 
 __attribute__((naked)) void syscall_dispatcher(void) {
+
   __asm__ __volatile__(
       ".intel_syntax noprefix\n"
 
       ".equ MAX_SYSCALLS, 4\n" // Have to define again, inline asm does not see
-                                // the #define
+                               // the #define
 
       "cmp eax, MAX_SYSCALLS-1\n" // syscalls table is 0-based
       "ja invalid_syscall\n"      // invalid syscall number, skip and return
@@ -66,3 +67,9 @@ uint32_t syscall_test0(syscall_regs_t regs) {
   print_hex(regs.eax);
   return EXIT_SUCCESS;
 }
+
+uint32_t syscall_sleep(syscall_regs_t regs) { return EXIT_SUCCESS; }
+
+uint32_t syscall_malloc(syscall_regs_t regs) { return EXIT_SUCCESS; }
+
+uint32_t syscall_free(syscall_regs_t regs) { return EXIT_SUCCESS; }
