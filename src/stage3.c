@@ -8,6 +8,7 @@
 #include "hal/gdt.h"
 #include "hal/idt.h"
 #include "hal/pic.h"
+#include "hal/tss.h"
 #include "interrupts/exceptions.h"
 #include "interrupts/keyboard.h"
 #include "interrupts/pit.h"
@@ -31,14 +32,19 @@ typedef struct SMAP_entry {
 } __attribute__((packed)) SMAP_entry_t;
 
 void hal_init();
-void setup_interrupts();
+void setup_interrupt_handlers();
 
 __attribute__((section("prekernel_setup"))) void pkmain(void) {
   clear_screen();
 
   // initialize hardware abstraction layer (GDT, IDT, PIC)
   hal_init();
-  setup_interrupts();
+
+  // setup exception, software & hardware interrupt handlers
+  setup_interrupt_handlers();
+
+  // initialize TSS
+  tss_init(5, 0x10, 0);
 
   uint32_t prekernel_size = *(uint32_t *)PREKERNEL_SIZE_ADDRESS;
   uint32_t entry_count = *(uint32_t *)SMAP_ENTRY_COUNT_ADDRESS;
@@ -109,7 +115,7 @@ void hal_init() {
   pic_init();
 }
 
-void setup_interrupts() {
+void setup_interrupt_handlers() {
 
   // set up exception handlers (i.e, divide by 0, page fault..)
   idt_set_descriptor(14, page_fault_handler, TRAP_GATE_FLAGS);

@@ -38,4 +38,6 @@ void tss_init(uint32_t idx, uint16_t kernel_ss, uint16_t kernel_esp) {
   flush_tss(idx * sizeof(gdt_descriptor) + 3);
 }
 
-void flush_tss(uint16_t sel) { __asm__ __volatile("ltr %w0" : : "r"(sel)); }
+void flush_tss(uint16_t sel) {
+  __asm__ __volatile("cli; ltr (%w0); sti" : : "r"(sel));
+}
