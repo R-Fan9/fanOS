@@ -43,7 +43,7 @@
 #define GDT_GRAND_4K 0x80 // 10000000
 
 typedef struct _gdt_descriptor {
-  // bits 0 - 15 of segment limt
+  // bits 0 - 15 of segment limit
   uint16_t limit;
 
   // bits 0 - 23 of base address

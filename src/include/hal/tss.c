@@ -4,7 +4,7 @@
 #include "debug/display.h"
 #include "gdt.h"
 
-static tss_entry TSS;
+static tss_entry_t TSS;
 
 // load TSS into TSR register
 void flush_tss(uint16_t sel);
@@ -22,9 +22,9 @@ void tss_init(uint32_t idx, uint16_t kernel_ss, uint16_t kernel_esp) {
   access |= GDT_DESC_MEMORY;
   access |= GDT_DESC_DPL;
 
-  gdt_set_descriptor(idx, base, base + sizeof(tss_entry), access, 0);
+  gdt_set_descriptor(idx, base, base + sizeof(tss_entry_t), access, 0);
 
-  memset(&TSS, 0, sizeof(tss_entry));
+  memset(&TSS, 0, sizeof(tss_entry_t));
 
   TSS.ss0 = kernel_ss;
   TSS.esp0 = kernel_esp;

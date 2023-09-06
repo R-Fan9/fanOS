@@ -3,7 +3,7 @@
 #ifndef TSS_H
 #define TSS_H
 
-typedef struct _tss_entry {
+typedef struct tss_entry {
   uint32_t prev_tss; // the previous TSS
   uint32_t esp0;     // the stack pointer to load when changing to kernel mode
   uint32_t ss0;      // the stack segment to load when changing to kernel mode
@@ -31,7 +31,7 @@ typedef struct _tss_entry {
   uint32_t ldt;
   uint16_t trap;
   uint16_t iomap;
-} __attribute__((packed)) tss_entry;
+} __attribute__((packed)) tss_entry_t;
 
 void tss_set_stack(uint16_t kernel_ss, uint16_t kernel_esp);
 void tss_init(uint32_t idx, uint16_t kernel_ss, uint16_t kernel_esp);

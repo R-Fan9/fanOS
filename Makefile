@@ -16,8 +16,16 @@ BFLAGS = -qf
 
 bootloader := boot/build/Boot.bin boot/build/KRNLDR.SYS
 
+asm_source_files := $(shell find src/ -name *.asm)
+asm_object_files := $(patsubst src/%.asm, build/%.o, $(asm_source_files))
+
 include_source_files := $(shell find src/include/ -name *.c)
 include_object_files := $(patsubst src/include/%.c, build/include/%.o, $(include_source_files))
+
+
+$(asm_object_files): build/%.o : src/%.asm
+	mkdir -p $(dir $@) && \
+	$(AS) $(ASFLAGS) $(patsubst build/%.o, src/%.asm, $@) -o $@
 
 $(include_object_files): build/include/%.o : src/include/%.c
 	mkdir -p $(dir $@) && \
@@ -31,7 +39,7 @@ build/kernel.o: src/kernel.c
 	mkdir -p $(dir $@) && \
 	$(CC) $(CFLAGS) $^ -o $@
 
-build/PRKRNL.SYS: build/stage3.o $(include_object_files)
+build/PRKRNL.SYS: build/stage3.o $(include_object_files) $(asm_object_files)
 	mkdir -p $(dir $@) && \
 	$(LD) $(LFLAGS) -T target/stage3.ld -o $@ $^
 

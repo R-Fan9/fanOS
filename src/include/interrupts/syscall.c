@@ -66,9 +66,13 @@ __attribute__((naked)) void syscall_dispatcher(void) {
 }
 
 uint32_t syscall_test0(syscall_regs_t regs) {
-  clear_screen();
-  print_string((uint8_t *)"test0 syscall; syscall # (EAX): ");
-  print_hex(regs.eax);
+  uint16_t *framebuffer = (uint16_t *)0xB8000;
+  uint8_t c = 'A';
+  uint8_t color = (BG_COLOR << 4) | (FG_COLOR & 0x0F);
+
+  framebuffer[0] = c | (color << 8);
+  framebuffer[1] = c | (color << 8);
+
   return EXIT_SUCCESS;
 }
 

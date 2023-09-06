@@ -31,8 +31,11 @@ typedef struct SMAP_entry {
   uint32_t acpi;
 } __attribute__((packed)) SMAP_entry_t;
 
+extern void jump_usermode();
+
 void hal_init();
 void setup_interrupt_handlers();
+void test_usermode(void);
 
 __attribute__((section("prekernel_setup"))) void pkmain(void) {
   clear_screen();
@@ -94,10 +97,22 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // initialize virtual memory manager & enable paging
   vmmngr_init();
 
-  clear_screen();
+  int32_t stack = 0;
+  __asm__ __volatile__("movl %%ESP, %0" : "=r"(stack));
+  tss_set_stack(0x10, stack);
+  jump_usermode();
 
-  // execute higher half kernel
-  ((void (*)(void))0xC0000000)();
+  // clear_screen();
+  //
+  // // execute higher half kernel
+  // ((void (*)(void))0xC0000000)();
+}
+
+void test_usermode(void) {
+  __asm__ __volatile__("int $0x80" : : "a"(SYSCALL_TEST0));
+
+  while (1) {
+  }
 }
 
 void hal_init() {

@@ -116,6 +116,7 @@ void vmmngr_init() {
     // create a new page
     pt_entry page = 0;
     pt_entry_add_attrib(&page, PTE_PRESENT);
+    pt_entry_add_attrib(&page, PTE_WRITABLE);
     pt_entry_add_attrib(&page, PTE_USER);
     pt_entry_set_frame(&page, frame);
 
