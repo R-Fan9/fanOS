@@ -30,7 +30,6 @@ $(asm_object_files): build/%.o : src/%.asm
 $(include_object_files): build/include/%.o : src/include/%.c
 	mkdir -p $(dir $@) && \
 	$(CC) $(CFLAGS) $(patsubst build/include/%.o, src/include/%.c, $@) -o $@
-
 build/stage3.o: src/stage3.c
 	mkdir -p $(dir $@) && \
 	$(CC) $(CFLAGS) $^ -o $@

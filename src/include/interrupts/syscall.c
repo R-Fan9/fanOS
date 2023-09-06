@@ -66,18 +66,21 @@ __attribute__((naked)) void syscall_dispatcher(void) {
 }
 
 uint32_t syscall_test0(syscall_regs_t regs) {
-  uint16_t *framebuffer = (uint16_t *)0xB8000;
-  uint8_t c = 'A';
-  uint8_t color = (BG_COLOR << 4) | (FG_COLOR & 0x0F);
-
-  framebuffer[0] = c | (color << 8);
-  framebuffer[1] = c | (color << 8);
-
+  clear_screen();
+  print_string((uint8_t *)"test0 syscall; syscall # (EAX): ");
+  print_hex(regs.eax);
   return EXIT_SUCCESS;
 }
 
 uint32_t syscall_sleep(syscall_regs_t regs) {
-  sleep(regs.ebx);
+  uint32_t ticks = regs.ebx;
+
+  // TODO - sleep() from PIT is not working here, could be due to syscall int
+  // 0x80 is used, which prevents other interrupts (i.e. timer - IRQ0) from
+  // executing
+  for (uint32_t i = 0; i < ticks * 100000; i++) {
+  }
+
   return EXIT_SUCCESS;
 }
 
