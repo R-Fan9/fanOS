@@ -6,9 +6,8 @@ __attribute__((naked)) void enter_usermode(void) {
       ".intel_syntax noprefix\n"
 
       "cli\n"
-
       "mov ax, 0x23\n" // user mode data selector is 0x20 (GDT entry 3), with
-                       // RPL 3
+                       // RPL 3 (ring 3)
       "mov ds, ax\n"
       "mov es, ax\n"
       "mov fs, ax\n"
@@ -22,8 +21,8 @@ __attribute__((naked)) void enter_usermode(void) {
       "or eax, 0x200\n" // enable IF in EFLAGS
       "push eax\n"
 
-      "push 0x1B\n"    // CS, user mode code selector is 0x18, with RPL 3
-      "lea eax, [a]\n" // EIP first
+      "push 0x1B\n" // CS, user mode code selector is 0x18, with RPL 3 (ring 3)
+      "lea eax, [a]\n" // EIP
       "push eax\n"
       "iretd\n"
 

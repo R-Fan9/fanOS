@@ -3,6 +3,10 @@
 #ifndef GDT_H
 #define GDT_H
 
+// one null segment
+// two ring 0 segments
+// two ring 3 segments
+// TSS segment
 #define GDT_SIZE 6
 
 // set access bit

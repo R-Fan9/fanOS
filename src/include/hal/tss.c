@@ -1,6 +1,7 @@
 #include "tss.h"
 #include "C/stdint.h"
 #include "C/string.h"
+#include "debug/display.h"
 #include "gdt.h"
 
 static tss_entry TSS;
@@ -28,16 +29,14 @@ void tss_init(uint32_t idx, uint16_t kernel_ss, uint16_t kernel_esp) {
   TSS.ss0 = kernel_ss;
   TSS.esp0 = kernel_esp;
 
-  TSS.cs = 0x0B; // 0x0B = 0x08 + 0x03
-  TSS.ss = 0x13; // 0x13 = 0x10 + 0x03
+  TSS.cs = 0x0B; // 0x0B = 0x08|0x03
+  TSS.ss = 0x13; // 0x13 = 0x10|0x03
   TSS.es = 0x13;
   TSS.ds = 0x13;
   TSS.fs = 0x13;
   TSS.gs = 0x13;
 
-  flush_tss(idx * sizeof(gdt_descriptor) + 3);
+  flush_tss(idx * sizeof(gdt_descriptor) | 3);
 }
 
-void flush_tss(uint16_t sel) {
-  __asm__ __volatile("cli; ltr (%w0); sti" : : "r"(sel));
-}
+void flush_tss(uint16_t sel) { __asm__ __volatile("ltr %w0" : : "r"(sel)); }

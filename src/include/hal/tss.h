@@ -4,9 +4,9 @@
 #define TSS_H
 
 typedef struct _tss_entry {
-  uint32_t prevTss;
-  uint32_t esp0;
-  uint32_t ss0;
+  uint32_t prev_tss; // the previous TSS
+  uint32_t esp0;     // the stack pointer to load when changing to kernel mode
+  uint32_t ss0;      // the stack segment to load when changing to kernel mode
   uint32_t esp1;
   uint32_t ss1;
   uint32_t esp2;

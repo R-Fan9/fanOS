@@ -10,10 +10,8 @@ static pdirectory *curdir = 0;
 
 pt_entry *vmmngr_ptable_get_entry(ptable *table, virtual_addr addr);
 pd_entry *vmmngr_pdirectory_get_entry(pdirectory *dir, virtual_addr addr);
-pt_entry *vmmngr_get_page(virtual_addr addr);
-pd_entry *vmmngr_get_table(virtual_addr addr);
 
-uint8_t vmmngr_alloc_page(pt_entry *e) {
+physical_addr *vmmngr_alloc_page(pt_entry *e) {
 
   physical_addr *p = pmmngr_alloc_block();
   if (!p) {
@@ -22,7 +20,7 @@ uint8_t vmmngr_alloc_page(pt_entry *e) {
 
   pt_entry_set_frame(e, (physical_addr)p);
   pt_entry_add_attrib(e, PTE_PRESENT);
-  return 1;
+  return p;
 }
 
 void vmmngr_free_page(pt_entry *e) {
@@ -132,6 +130,7 @@ void vmmngr_init() {
     // create a new page
     pt_entry page = 0;
     pt_entry_add_attrib(&page, PTE_PRESENT);
+    pt_entry_add_attrib(&page, PTE_USER);
     pt_entry_set_frame(&page, frame);
 
     // add it to the page table

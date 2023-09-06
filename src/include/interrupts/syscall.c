@@ -1,6 +1,9 @@
 #include "syscall.h"
+#include "C/stdbool.h"
 #include "C/stdint.h"
 #include "debug/display.h"
+#include "interrupts/pit.h"
+#include "memory/malloc.h"
 
 uint32_t syscall_test0(syscall_regs_t regs);
 uint32_t syscall_sleep(syscall_regs_t regs);
@@ -19,7 +22,7 @@ __attribute__((naked)) void syscall_dispatcher(void) {
   __asm__ __volatile__(
       ".intel_syntax noprefix\n"
 
-      ".equ MAX_SYSCALLS, 4\n" // Have to define again, inline asm does not see
+      ".equ MAX_SYSCALLS, 4\n" // have to define again, inline asm does not see
                                // the #define
 
       "cmp eax, MAX_SYSCALLS-1\n" // syscalls table is 0-based
@@ -38,11 +41,11 @@ __attribute__((naked)) void syscall_dispatcher(void) {
       "push ebx\n"
       "push esp\n"
       "call [syscalls+eax*4]\n"
-      "add esp, 4\n" // Do not overwrite esp
+      "add esp, 4\n" // do not overwrite esp
       "pop ebx\n"
       "pop ecx\n"
 
-      // Do not overwrite EDX, as some syscalls e.g. malloc() will need it
+      // do not overwrite EDX, as some syscalls e.g. malloc() will need it
       "add esp, 4\n"
 
       "pop esi\n"
@@ -52,24 +55,45 @@ __attribute__((naked)) void syscall_dispatcher(void) {
       "pop es\n"
       "pop fs\n"
       "pop gs\n"
-      "add esp, 4\n" // Save eax value in case; don't overwrite it
-      "iretd\n"      // Need interrupt return here! iret, NOT ret
+      "add esp, 4\n" // save eax value in case; don't overwrite it
+      "iretd\n"
 
       "invalid_syscall:\n"
-      "mov eax, -1\n" // Error will be -1
+      "mov eax, -1\n" // return -1 to indicate error
       "iretd\n"
 
       ".att_syntax");
 }
 
 uint32_t syscall_test0(syscall_regs_t regs) {
+  clear_screen();
   print_string((uint8_t *)"test0 syscall; syscall # (EAX): ");
   print_hex(regs.eax);
   return EXIT_SUCCESS;
 }
 
-uint32_t syscall_sleep(syscall_regs_t regs) { return EXIT_SUCCESS; }
+uint32_t syscall_sleep(syscall_regs_t regs) {
+  sleep(regs.ebx);
+  return EXIT_SUCCESS;
+}
 
-uint32_t syscall_malloc(syscall_regs_t regs) { return EXIT_SUCCESS; }
+uint32_t syscall_malloc(syscall_regs_t regs) {
+  uint32_t bytes = regs.ebx;
 
-uint32_t syscall_free(syscall_regs_t regs) { return EXIT_SUCCESS; }
+  if (is_malloc_inited() == false) {
+    malloc_init(bytes);
+  }
+
+  void *ptr = malloc_next_block(bytes);
+  merge_free_blocks();
+
+  __asm__ __volatile__("mov %0, %%EAX" : : "r"(ptr));
+
+  return EXIT_SUCCESS;
+}
+
+uint32_t syscall_free(syscall_regs_t regs) {
+  void *ptr = (void *)regs.ebx;
+  malloc_free(ptr);
+  return EXIT_SUCCESS;
+}
