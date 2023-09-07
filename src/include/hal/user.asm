@@ -1,9 +1,9 @@
 section .text
 
-global jump_usermode
-extern usermode
+global enter_usermode
+extern userland
 
-jump_usermode:
+enter_usermode:
     cli
     mov ax, 0x23 ; user mode data selector is 0x20 (GDT entry 3), with RPL 3 (ring 3)
     mov ds, ax
@@ -20,5 +20,5 @@ jump_usermode:
     push eax
 
     push 0x1B	    ; CS, user mode code selector is 0x18, with RPL 3 (ring 3)
-    push usermode   ; EIP
+    push userland   ; EIP
     iret

@@ -3,6 +3,6 @@
 #ifndef STDIO_H
 #define STDIO_H
 
-void printf(const uint8_t *fmt, ...);
+void printf(const char *fmt, ...);
 
 #endif // !STDIO_H

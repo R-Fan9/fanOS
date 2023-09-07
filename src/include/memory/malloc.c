@@ -1,6 +1,7 @@
 #include "malloc.h"
 #include "C/stdbool.h"
 #include "C/stdint.h"
+#include "debug/display.h"
 #include "physical_mmngr.h"
 #include "virtual_mmngr.h"
 
@@ -105,16 +106,13 @@ void malloc_init(uint32_t bytes) {
     vmmngr_map_page((physical_addr *)phys, (virtual_addr *)virt);
 
     pt_entry *page = vmmngr_get_page(virt);
-
     pt_entry_add_attrib(page, PTE_WRITABLE);
   }
 
-  if (malloc_list_head) {
-    malloc_list_head->size =
-        total_malloc_pages * PAGE_SIZE - sizeof(malloc_block_t);
-    malloc_list_head->free = true;
-    malloc_list_head->next = 0;
-  }
+  malloc_list_head->size =
+      total_malloc_pages * PAGE_SIZE - sizeof(malloc_block_t);
+  malloc_list_head->free = true;
+  malloc_list_head->next = 0;
 }
 
 void malloc_split(malloc_block_t *node, const uint32_t size) {

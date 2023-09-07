@@ -1,3 +1,4 @@
+#include "debug/display.h"
 #include "interrupts/syscall.h"
 #include "stdbool.h"
 #include "stdint.h"
@@ -10,8 +11,6 @@
 
 uint8_t *write_buffer = 0;
 uint32_t len = 0;
-
-void print(const int32_t fd, const void *buf);
 
 // Print a hex integer
 void printf_hex(const uint32_t num) {
@@ -33,21 +32,21 @@ void printf_hex(const uint32_t num) {
 }
 
 // Print a decimal integer
-void printf_int(const int32_t num, const uint8_t base, const bool sign) {
-  const uint8_t digits[] = "0123456789ABCDEF";
+void printf_int(const int32_t num) {
+  const uint8_t digits[] = "0123456789";
   bool negative = false;
   uint8_t buf[16] = {0};
   int32_t i = 0;
   int32_t n = num;
 
-  if (sign == true && num < 0) {
+  if (num < 0) {
     negative = true;
     n = -num;
   }
 
   do {
-    buf[i++] = digits[n % base];
-  } while ((n /= base) > 0);
+    buf[i++] = digits[n % 10];
+  } while ((n /= 10) > 0);
 
   if (negative)
     buf[i++] = '-';
@@ -56,29 +55,29 @@ void printf_int(const int32_t num, const uint8_t base, const bool sign) {
     write_buffer[len++] = buf[i];
 }
 
-// Print formatted string
+// print formatted string
 void printf(const char *fmt, ...) {
   uint32_t *arg_ptr = (uint32_t *)&fmt;
-  int state = 0;      // Inside a format string or not?
-  uint32_t max = 256; // Max string length
+  int state = 0;
+  uint32_t max = 256; // max string length
   char *s = 0;
 
-  arg_ptr++; // Move to first arg after format string on the stack
+  arg_ptr++; // move to first arg after format string on the stack
 
   len = 0;
   write_buffer = malloc(max);
 
-  // Initialize buffer
+  // initialize buffer
   memset(write_buffer, 0, max);
 
   for (uint32_t i = 0; fmt[i] != '\0'; i++) {
     while (len > max) {
-      // Allocate and move to a larger buffer
+      // allocate and move to a larger buffer
       max *= 2;
 
       uint8_t *temp_buffer = malloc(max);
 
-      // Initialize buffer
+      // initialize buffer
       memset(temp_buffer, 0, max);
 
       strcpy(temp_buffer, write_buffer);
@@ -99,8 +98,7 @@ void printf(const char *fmt, ...) {
       switch (c) {
       case 'd':
         // Decimal integer e.g. "123"
-        printf_int(*(int *)arg_ptr, 10, true);
-        // arg_ptr += sizeof(int *);
+        printf_int(*(int *)arg_ptr);
         arg_ptr++;
         break;
       case 'x':
@@ -145,10 +143,7 @@ void printf(const char *fmt, ...) {
     }
   }
 
-  write_buffer[len] = '\0';    // Null terminate string
-  print(stdout, write_buffer); // Call write system call
-}
-
-void print(const int32_t fd, const void *buf) {
-  __asm__ __volatile__("int $0x80" : : "a"(SYSCALL_PRINT), "b"(fd), "c"(buf));
+  write_buffer[len] = '\0'; // Null terminate string
+  print_string(write_buffer);
+  free(write_buffer);
 }
