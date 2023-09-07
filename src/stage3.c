@@ -22,6 +22,7 @@
 #define PREKERNEL_ADDRESS 0x50000
 #define PREKERNEL_SIZE_ADDRESS 0x8000
 #define KERNEL_ADDRESS 0x100000
+#define HHKERNEL_ADDRESS 0xC0000000
 #define KERNEL_IMAGE "KRNL    SYS"
 
 typedef struct SMAP_entry {
@@ -93,6 +94,8 @@ __attribute__((section("prekernel_setup"))) void pkmain(void) {
   // deinitialize memory region where the kernel is in
   pmmngr_deinit_region((physical_addr)(uint32_t *)KERNEL_ADDRESS, kernel_size);
 
+  pmmngr_display_blocks();
+
   // initialize virtual memory manager & enable paging
   vmmngr_init();
 
@@ -106,7 +109,7 @@ void usermode(void) {
   clear_screen();
 
   // execute higher half kernel
-  ((void (*)(void))0xC0000000)();
+  ((void (*)(void))HHKERNEL_ADDRESS)();
 }
 
 void hal_init() {

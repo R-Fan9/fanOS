@@ -9,12 +9,10 @@ uint32_t syscall_test0(syscall_regs_t regs);
 uint32_t syscall_sleep(syscall_regs_t regs);
 uint32_t syscall_malloc(syscall_regs_t regs);
 uint32_t syscall_free(syscall_regs_t regs);
+uint32_t syscall_print(syscall_regs_t regs);
 
 void *syscalls[MAX_SYSCALLS] = {
-    syscall_test0,
-    syscall_sleep,
-    syscall_malloc,
-    syscall_free,
+    syscall_test0, syscall_sleep, syscall_malloc, syscall_free, syscall_print,
 };
 
 __attribute__((naked)) void syscall_dispatcher(void) {
@@ -102,5 +100,17 @@ uint32_t syscall_malloc(syscall_regs_t regs) {
 uint32_t syscall_free(syscall_regs_t regs) {
   void *ptr = (void *)regs.ebx;
   malloc_free(ptr);
+  return EXIT_SUCCESS;
+}
+
+uint32_t syscall_print(syscall_regs_t regs) {
+  int32_t fd = regs.ebx;
+
+  if (fd < 0) {
+    return -1;
+  }
+
+  uint8_t *buf = (uint8_t *)regs.ecx;
+  print_string(buf);
   return EXIT_SUCCESS;
 }

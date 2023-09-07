@@ -48,8 +48,6 @@ void idt_init() {
 
   memset((void *)&idt, 0, sizeof(idt_descriptor) * IDT_SIZE - 1);
 
-  // idt_set_descriptor(6, default_excp_handler, TRAP_GATE_FLAGS);
-
   // set up exception handlers first (ISRs 0-31)
   for (uint8_t entry = 0; entry < 32; entry++) {
     if (entry == 8 || entry == 10 || entry == 11 || entry == 12 ||

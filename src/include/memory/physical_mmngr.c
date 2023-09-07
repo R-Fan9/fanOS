@@ -142,7 +142,6 @@ void pmmngr_display_blocks() {
   print_dec(pmmngr_get_used_block_count());
   print_string((uint8_t *)"\npmm free blocks: ");
   print_dec(pmmngr_get_free_block_count());
-  clear_screen();
 }
 
 uint32_t pmmngr_get_memory_size() { return memory_size; }
