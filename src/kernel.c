@@ -36,7 +36,8 @@ void hal_init();
 void setup_interrupt_handlers();
 
 __attribute__((section("kernel_main"))) void kmain(void) {
-  // clear_screen();
+  clear_screen();
+
   uint32_t kernel_size = *(uint32_t *)KERNEL_SIZE_ADDRESS;
   uint32_t entry_count = *(uint32_t *)SMAP_ENTRY_COUNT_ADDRESS;
   SMAP_entry_t *entry = (SMAP_entry_t *)SMAP_ENTRY_ADDRESS;
