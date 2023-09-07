@@ -3,7 +3,11 @@
 #ifndef GDT_H
 #define GDT_H
 
-#define GDT_SIZE 3
+// one null segment
+// two ring 0 segments
+// two ring 3 segments
+// TSS segment
+#define GDT_SIZE 6
 
 // set access bit
 #define GDT_DESC_ACCESS 0x0001 // 00000001
@@ -38,8 +42,8 @@
 // 4k grandularity. default: none
 #define GDT_GRAND_4K 0x80 // 10000000
 
-struct gdt_descriptor {
-  // bits 0 - 15 of segment limt
+typedef struct _gdt_descriptor {
+  // bits 0 - 15 of segment limit
   uint16_t limit;
 
   // bits 0 - 23 of base address
@@ -52,15 +56,15 @@ struct gdt_descriptor {
 
   // bits 24 - 32 of base address
   uint8_t base_high;
-} __attribute__((packed));
+} __attribute__((packed)) gdt_descriptor;
 
-struct gdtr {
+typedef struct _gdtr {
   // size of gdt
   uint16_t limit;
 
   // base address of gdt
   uint32_t base;
-} __attribute__((packed));
+} __attribute__((packed)) gdtr;
 
 void gdt_set_descriptor(uint32_t i, uint64_t base, uint64_t limit,
                         uint8_t access, uint8_t grand);

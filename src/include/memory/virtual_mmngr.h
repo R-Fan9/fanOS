@@ -42,8 +42,14 @@ physical_addr *vmmngr_virt_to_phys(virtual_addr *addr);
 // get page directory
 pdirectory *vmmngr_get_directory();
 
+// get page table
+pd_entry *vmmngr_get_table(virtual_addr addr);
+
+// get page
+pt_entry *vmmngr_get_page(virtual_addr addr);
+
 // allocate a page in physical memory
-uint8_t vmmngr_alloc_page(pt_entry *e);
+physical_addr *vmmngr_alloc_page(pt_entry *e);
 
 // free a page in physical memory
 void vmmngr_free_page(pt_entry *e);

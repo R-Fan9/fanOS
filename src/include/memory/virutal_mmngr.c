@@ -10,10 +10,8 @@ static pdirectory *curdir = 0;
 
 pt_entry *vmmngr_ptable_get_entry(ptable *table, virtual_addr addr);
 pd_entry *vmmngr_pdirectory_get_entry(pdirectory *dir, virtual_addr addr);
-pt_entry *vmmngr_get_page(virtual_addr addr);
-pd_entry *vmmngr_get_table(virtual_addr addr);
 
-uint8_t vmmngr_alloc_page(pt_entry *e) {
+physical_addr *vmmngr_alloc_page(pt_entry *e) {
 
   physical_addr *p = pmmngr_alloc_block();
   if (!p) {
@@ -22,7 +20,7 @@ uint8_t vmmngr_alloc_page(pt_entry *e) {
 
   pt_entry_set_frame(e, (physical_addr)p);
   pt_entry_add_attrib(e, PTE_PRESENT);
-  return 1;
+  return p;
 }
 
 void vmmngr_free_page(pt_entry *e) {
@@ -119,6 +117,7 @@ void vmmngr_init() {
     pt_entry page = 0;
     pt_entry_add_attrib(&page, PTE_PRESENT);
     pt_entry_add_attrib(&page, PTE_WRITABLE);
+    pt_entry_add_attrib(&page, PTE_USER);
     pt_entry_set_frame(&page, frame);
 
     // add it to the page table
@@ -132,6 +131,7 @@ void vmmngr_init() {
     // create a new page
     pt_entry page = 0;
     pt_entry_add_attrib(&page, PTE_PRESENT);
+    pt_entry_add_attrib(&page, PTE_USER);
     pt_entry_set_frame(&page, frame);
 
     // add it to the page table
@@ -150,11 +150,13 @@ void vmmngr_init() {
   pd_entry *default_entry = vmmngr_pdirectory_get_entry(dir, 0x00000000);
   pd_entry_add_attrib(default_entry, PDE_PRESENT);
   pd_entry_add_attrib(default_entry, PDE_WRITABLE);
+  pd_entry_add_attrib(default_entry, PDE_USER);
   pd_entry_set_frame(default_entry, (physical_addr)default_page_table);
 
   pd_entry *kernel_entry = vmmngr_pdirectory_get_entry(dir, 0xC0000000);
   pd_entry_add_attrib(kernel_entry, PDE_PRESENT);
   pd_entry_add_attrib(kernel_entry, PDE_WRITABLE);
+  pd_entry_add_attrib(kernel_entry, PDE_USER);
   pd_entry_set_frame(kernel_entry, (physical_addr)kernel_page_table);
 
   // switch to our page directory

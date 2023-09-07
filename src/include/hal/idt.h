@@ -8,7 +8,7 @@
 #define INT_GATE_FLAGS 0x8E
 #define INT_GATE_USER_FLAGS 0xEE
 
-struct idt_descriptor {
+typedef struct _idt_descriptor {
   // bits 0-16 of interrupt routine (IR) address
   uint16_t base_low;
 
@@ -23,15 +23,15 @@ struct idt_descriptor {
 
   // bits 16-32 of IR address
   uint16_t base_high;
-} __attribute__((packed));
+} __attribute__((packed)) idt_descriptor;
 
-struct idtr {
+typedef struct _idtr {
   // size of idt
   uint16_t limit;
 
   // base address of idt
   uint32_t base;
-} __attribute__((packed));
+} __attribute__((packed)) idtr;
 
 // Interrupt "frame" to pass to interrupt handlers/ISRs
 typedef struct {

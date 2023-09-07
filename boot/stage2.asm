@@ -2,8 +2,8 @@ bits 16
 
 org 0x500
 
-%define PREKERNEL_PMODE_BASE 0x50000   ; where the prekernel is to be loaded to in protected mode
-%define PREKERNEL_RMODE_BASE 0x3000    ; where the prekernel is to be loaded to in real mode
+%define KERNEL_PMODE_BASE 0x100000   ; where the kernel is to be loaded to in protected mode
+%define KERNEL_RMODE_BASE 0x3000    ; where the kernel is to be loaded to in real mode
 
 start:
     jmp	    main				
@@ -24,9 +24,9 @@ start:
 ;
 ;	    -Store BIOS information
 ;	    -Install GDT; Enable A20
-;	    -Load prekernel image
+;	    -Load kernel image
 ;	    -Go into protected mode (pmode)
-;	    -Jump to Stage 3 (prekernel)
+;	    -Jump to Stage 3 (kernel)
 ;*******************************************************
 
 main:
@@ -72,16 +72,16 @@ main:
     call    load_root
 
     ;----------------------------------------------------
-    ; Load prekernel
+    ; Load kernel
     ;----------------------------------------------------
     mov	    ebx, 0	; BX:BP points to buffer to load to
-    mov	    bp, PREKERNEL_RMODE_BASE
-    mov	    si, prekernel_image_name
+    mov	    bp, KERNEL_RMODE_BASE
+    mov	    si, kernel_image_name
     call    load_image
-    mov	    DWORD [prekernel_image_size], ecx
+    mov	    DWORD [kernel_image_size], ecx
     cmp	    ax, 0
     je	    enter_stage3
-    mov	    si, prekernel_failure_msg
+    mov	    si, kernel_failure_msg
     call    print_str
     mov	    ah, 0x0
     int	    0x16	; wait for keypress
@@ -120,25 +120,25 @@ stage3:
     mov	    esp, 0x90000	; stack begins from 0x90000 
 
 ;----------------------------------------------------
-; Copy prekernel to 0x50000
+; Copy kernel to 0x50000
 ;----------------------------------------------------
 copy_image:
-    mov	    eax, DWORD [prekernel_image_size]
-    mov	    [0x8000], eax	; move the value of prekernel image size to address 0x8000
+    mov	    eax, DWORD [kernel_image_size]
+    mov	    [0x8000], eax	; move the value of kernel image size to address 0x8000
     movzx   ebx, WORD [bpbBytesPerSector]
     mul	    ebx
     mov	    ebx, 4
     div	    ebx
     cld
-    mov	    esi, PREKERNEL_RMODE_BASE
-    mov	    edi, PREKERNEL_PMODE_BASE
+    mov	    esi, KERNEL_RMODE_BASE
+    mov	    edi, KERNEL_PMODE_BASE
     mov	    ecx, eax
     rep	    movsd		; copy image to its protected mode address
     
 ;----------------------------------------------------
-; Execute prekernel
+; Execute kernel
 ;----------------------------------------------------
-jmp    CODE_DESC:PREKERNEL_PMODE_BASE
+jmp    CODE_DESC:KERNEL_PMODE_BASE
 
 stop:
     cli
@@ -147,7 +147,7 @@ stop:
 ;*************************************************;
 ;   Data section
 ;*************************************************;
-prekernel_image_name   db "PRKRNL  SYS"
-prekernel_image_size   db 0
+kernel_image_name   db "KRNL    SYS"
+kernel_image_size   db 0
 loading_msg	db	"Searching for Operating System...", 0x0A, 0x00
-prekernel_failure_msg db 0x0D, 0x0A, "*** FATAL: Missing or corrupt PRKRNL.SYS. Press Any Key to Reboot.", 0x0D, 0x0A, 0x0A, 0x00
+kernel_failure_msg db 0x0D, 0x0A, "*** FATAL: Missing or corrupt KRNL.SYS. Press Any Key to Reboot.", 0x0D, 0x0A, 0x0A, 0x00

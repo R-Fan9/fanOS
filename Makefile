@@ -16,13 +16,20 @@ BFLAGS = -qf
 
 bootloader := boot/build/Boot.bin boot/build/KRNLDR.SYS
 
+asm_source_files := $(shell find src/ -name *.asm)
+asm_object_files := $(patsubst src/%.asm, build/%.o, $(asm_source_files))
+
 include_source_files := $(shell find src/include/ -name *.c)
 include_object_files := $(patsubst src/include/%.c, build/include/%.o, $(include_source_files))
+
+
+$(asm_object_files): build/%.o : src/%.asm
+	mkdir -p $(dir $@) && \
+	$(AS) $(ASFLAGS) $(patsubst build/%.o, src/%.asm, $@) -o $@
 
 $(include_object_files): build/include/%.o : src/include/%.c
 	mkdir -p $(dir $@) && \
 	$(CC) $(CFLAGS) $(patsubst build/include/%.o, src/include/%.c, $@) -o $@
-
 build/stage3.o: src/stage3.c
 	mkdir -p $(dir $@) && \
 	$(CC) $(CFLAGS) $^ -o $@
@@ -31,23 +38,18 @@ build/kernel.o: src/kernel.c
 	mkdir -p $(dir $@) && \
 	$(CC) $(CFLAGS) $^ -o $@
 
-build/PRKRNL.SYS: build/stage3.o $(include_object_files)
-	mkdir -p $(dir $@) && \
-	$(LD) $(LFLAGS) -T target/stage3.ld -o $@ $^
-
-build/KRNL.SYS: build/kernel.o $(include_object_files)
+build/KRNL.SYS: build/kernel.o $(include_object_files) $(asm_object_files)
 	mkdir -p $(dir $@) && \
 	$(LD) $(LFLAGS) -T target/kernel.ld -o $@ $^
 
 $(bootloader):
 	$(MAKE) -C boot all
 
-bin/OS.bin: $(bootloader) build/PRKRNL.SYS build/KRNL.SYS
+bin/OS.bin: $(bootloader) build/KRNL.SYS
 	mkdir -p $(dir $@) && \
 	dd if=/dev/zero of=bin/OS.bin bs=512   count=2880           # floppy is 2880 sectors of 512 bytes
 	dd if=boot/build/Boot.bin of=bin/OS.bin seek=0 count=1 conv=notrunc
 	mcopy -i bin/OS.bin boot/build/KRNLDR.SYS \:\:KRNLDR.SYS
-	mcopy -i bin/OS.bin build/PRKRNL.SYS \:\:PRKRNL.SYS
 	mcopy -i bin/OS.bin build/KRNL.SYS \:\:KRNL.SYS
 
 run: bin/OS.bin
