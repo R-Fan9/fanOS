@@ -45,9 +45,10 @@ make run
 ## TODO(s)
 
 * Implement write & save file(s) functionalities
-* Implement process management (i.e. task scheduling, multithreading, etc)
+* Implement process management (i.e. IPC, task scheduling, multithreading, etc)
 * Implement more C standard library functions & date types (i.e. type conversion, type abstraction, etc)
 * Implement network functionalities
+* Allocate memory space from hard disk when encounter page fault (#PF) due to out of RAM memory
 * Develop a simple Graphical User Interface (GUI)
 * Enable x86OS to run successfully on bochs emulator
 
