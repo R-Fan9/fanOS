@@ -1,9 +1,9 @@
 section .text
 
-global enter_usermode
+global jmp_usermode
 extern userland
 
-enter_usermode:
+jmp_usermode:
     cli
     mov ax, 0x23 ; user mode data selector is 0x20 (GDT entry 3), with RPL 3 (ring 3)
     mov ds, ax
