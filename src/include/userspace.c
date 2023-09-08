@@ -1,10 +1,40 @@
+#include "C/stdbool.h"
 #include "C/stdint.h"
 #include "C/stdio.h"
 #include "C/stdlib.h"
 
-void userspace(void) {
-  printf("Welcome to user space!!!, %d %x", 10, 16);
+void cmd();
+void input_cmd(char *buf);
+bool run_cmd(char *buf);
 
-  while (1) {
+int userspace(void) {
+  char *cmd_buf;
+  bool exit = false;
+
+  while (exit == false) {
+
+    // // display command prompt
+    // cmd();
+    //
+    // // input command
+    // input_cmd(cmd_buf);
+    //
+    // // run command
+    exit = run_cmd(cmd_buf);
   }
+
+  return 0;
 }
+
+void cmd(){
+  printf("\ncommand>");
+}
+
+void input_cmd(char *buf){
+}
+
+bool run_cmd(char *buf){
+  return false;
+}
+
+
