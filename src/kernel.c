@@ -30,7 +30,7 @@ typedef struct SMAP_entry {
   uint32_t acpi;
 } __attribute__((packed)) SMAP_entry_t;
 
-extern void jmp_usermode();
+extern void jmp_userspace();
 
 void hal_init();
 void setup_interrupt_handlers();
@@ -84,7 +84,7 @@ __attribute__((section("kernel_main"))) void kmain(void) {
   int32_t stack = 0;
   __asm__ __volatile__("movl %%ESP, %0" : "=r"(stack));
   tss_set_stack(0x10, stack);
-  jmp_usermode();
+  jmp_userspace();
 }
 
 void hal_init() {

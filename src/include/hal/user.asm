@@ -1,9 +1,9 @@
 section .text
 
-global jmp_usermode
-extern userland
+global jmp_userspace
+extern userspace
 
-jmp_usermode:
+jmp_userspace:
     cli
     mov ax, 0x23 ; user mode data selector is 0x20 (GDT entry 3), with RPL 3 (ring 3)
     mov ds, ax
@@ -20,5 +20,5 @@ jmp_usermode:
     push eax
 
     push 0x1B	    ; CS, user mode code selector is 0x18, with RPL 3 (ring 3)
-    push userland   ; EIP
+    push userspace   ; EIP
     iret
