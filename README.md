@@ -4,34 +4,52 @@ A x86 (32 bits) operating system from scratch
 
 ## Description
 
-An in-depth paragraph about your project and overview of use.
+### Project Structure
+
+* nasm
+* build-essential
+* qemu-system
+* mtools
+* make
+
+### Current State
+
+#### Linux
+```
+sudo apt-get install nasm build-essential qemu-system mtools make
+```
 
 ## Getting Started
 
-### Dependencies
+### Prerequsites
 
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
+* nasm
+* build-essential
+* qemu-system
+* mtools
+* make
 
 ### Installing
 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
-
-### Executing program
-
-* How to run the program
-* Step-by-step bullets
+#### Linux
 ```
-code blocks for commands
+sudo apt-get install nasm build-essential qemu-system mtools make
+```
+
+### Executing x86OS
+
+```
+make run
 ```
 
 ## TODO(s)
 
-Any advise for common problems or issues.
-```
-command to run if program contains helper info
-```
+* Implement write & save file(s) functionalities
+* Implement process management (i.e. task scheduling, multithreading, etc)
+* Implement more C standard library functions & date types (i.e. type conversion, type abstraction, etc)
+* Implement network functionalities
+* Develop a simple Graphical User Interface (GUI)
+* Enable x86OS to run successfully on bochs emulator
 
 ## Acknowledgments
 
