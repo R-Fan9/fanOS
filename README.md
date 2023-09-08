@@ -11,6 +11,7 @@ A x86 (32 bits) operating system from scratch
 * /src: source code for x86OS
 * /build: object files for the compiled src code 
 * /bin: contains the floppy disk - OS.bin binary
+* /target: linker scripts to combine object files to create an executable program
 
 ### Current State
 
