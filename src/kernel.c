@@ -73,7 +73,7 @@ __attribute__((section("kernel_main"))) void kmain(void) {
   pmmngr_deinit_region(MEMMAP_ADDRESS,
                        pmmngr_get_block_count() / BLOCKS_PER_BYTE);
 
-  // deinitialize memory region where the prekernel is in
+  // deinitialize memory region where the kernel is in
   pmmngr_deinit_region(KERNEL_ADDRESS, kernel_size * 512);
 
   // initialize virtual memory manager

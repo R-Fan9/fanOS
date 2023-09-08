@@ -13,12 +13,12 @@ jmp_userspace:
 
     push 0x23	; SS
     push esp	; ESP
-    pushf	; EFLAGS
+    pushf	    ; EFLAGS
 
     pop eax
     or eax, 0x200   ; enable IF in EFLAGS
     push eax
 
-    push 0x1B	    ; CS, user mode code selector is 0x18, with RPL 3 (ring 3)
+    push 0x1B	     ; CS, user mode code selector is 0x18, with RPL 3 (ring 3)
     push userspace   ; EIP
     iret
