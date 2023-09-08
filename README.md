@@ -66,7 +66,7 @@ make run
 * Implement more C standard library functions & date types (i.e. type conversion, type abstraction, etc)
 * Implement network functionalities
 * Allocate memory space from hard disk when encounter page fault (#PF) due to out of RAM
-* Utilize UEFI firmware interface to replace BIOS firmware, along with 64 bits long mode enabled (could be a version 2 of x86OS)
+* Utilize Unified Extensible Firmware Interface (UEFI) to replace BIOS firmware, along with 64 bits long mode enabled (could be a version 2 of x86OS)
 * Develop a simple Graphical User Interface (GUI)
 * Enable x86OS to run successfully on bochs emulator
 
