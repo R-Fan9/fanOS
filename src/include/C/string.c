@@ -22,6 +22,14 @@ uint8_t *strcpy(uint8_t *dst, const uint8_t *src) {
   return dst;
 }
 
+int32_t strcmp(const uint8_t *str1, const uint8_t *str2) {
+  while (*str1 && *str1 == *str2) {
+    str1++;
+    str2++;
+  }
+  return *str1 - *str2;
+}
+
 int32_t strncmp(const uint8_t *str1, const uint8_t *str2, uint8_t len) {
   while (len > 0 && *str1 == *str2) {
     str1++;

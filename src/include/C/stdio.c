@@ -107,13 +107,11 @@ void printf(const char *fmt, ...) {
         write_buffer[len++] = 'x';
 
         printf_hex(*(unsigned int *)arg_ptr);
-        // arg_ptr += sizeof(unsigned int *);
         arg_ptr++;
         break;
       case 's':
         // String
         s = *(char **)arg_ptr;
-        // arg_ptr += sizeof(char **);
         arg_ptr++;
 
         if (*s == '\0')
@@ -125,7 +123,6 @@ void printf(const char *fmt, ...) {
       case 'c':
         // Single Character
         write_buffer[len++] = *(char *)arg_ptr;
-        // arg_ptr += sizeof(char *);
         arg_ptr++;
         break;
       case '%':

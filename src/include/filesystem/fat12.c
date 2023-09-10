@@ -138,8 +138,6 @@ void fat_read_file(PFILE file, uint8_t *buffer) {
   }
 
   uint32_t cur_cluster = file->current_cluster;
-  print_hex(cur_cluster);
-  print_char(' ');
 
   uint32_t data_sector = fd_chs_to_lba(cur_cluster) + mount_info.data_offset;
   uint8_t *sector = fd_read_sector(data_sector);

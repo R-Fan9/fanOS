@@ -9,12 +9,13 @@ static malloc_block_t *malloc_list_head = 0;
 static physical_addr malloc_virt_addr = 0;
 static virtual_addr malloc_phys_addr = 0;
 static uint32_t total_malloc_pages = 0;
+static bool malloc_iniited = false;
 
 // split a block by inserting a new block with the size of the differeence of
 // original block and requested size
 void malloc_split(malloc_block_t *node, const uint32_t size);
 
-bool is_malloc_inited() { return malloc_list_head ? true : false; }
+bool is_malloc_inited() { return malloc_iniited; }
 
 void *malloc_next_block(uint32_t size) {
   malloc_block_t *cur = 0;
@@ -113,6 +114,8 @@ void malloc_init(uint32_t bytes) {
       total_malloc_pages * PAGE_SIZE - sizeof(malloc_block_t);
   malloc_list_head->free = true;
   malloc_list_head->next = 0;
+
+  malloc_iniited = true;
 }
 
 void malloc_split(malloc_block_t *node, const uint32_t size) {

@@ -5,7 +5,7 @@
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
-#define MAX_SYSCALLS 4
+#define MAX_SYSCALLS 5 
 
 typedef enum {
 
@@ -13,6 +13,7 @@ typedef enum {
   SYSCALL_SLEEP = 1,
   SYSCALL_MALLOC = 2,
   SYSCALL_FREE = 3,
+  SYSCALL_EXIT = 4,
 
 } syscall_numbers;
 
