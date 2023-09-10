@@ -9,12 +9,10 @@ uint32_t syscall_test0(syscall_regs_t regs);
 uint32_t syscall_sleep(syscall_regs_t regs);
 uint32_t syscall_malloc(syscall_regs_t regs);
 uint32_t syscall_free(syscall_regs_t regs);
+uint32_t syscall_exit(syscall_regs_t regs);
 
 void *syscalls[MAX_SYSCALLS] = {
-    syscall_test0,
-    syscall_sleep,
-    syscall_malloc,
-    syscall_free,
+    syscall_test0, syscall_sleep, syscall_malloc, syscall_free, syscall_exit,
 };
 
 __attribute__((naked)) void syscall_dispatcher(void) {
@@ -103,5 +101,16 @@ uint32_t syscall_malloc(syscall_regs_t regs) {
 uint32_t syscall_free(syscall_regs_t regs) {
   void *ptr = (void *)regs.ebx;
   malloc_free(ptr);
+  return EXIT_SUCCESS;
+}
+
+uint32_t syscall_exit(syscall_regs_t regs) {
+  uint32_t status = regs.ebx;
+  if (status != 0) {
+    return EXIT_FAILURE;
+  }
+
+  __asm__ __volatile__("cli;hlt");
+
   return EXIT_SUCCESS;
 }

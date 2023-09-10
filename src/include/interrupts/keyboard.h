@@ -163,5 +163,6 @@ __attribute__((interrupt)) void keyboard_irq1_handler(int_frame_t *frame);
 
 KEYCODE keyboard_get_last_key();
 void keyboard_discard_last_key();
+int8_t keyboard_key_to_ascii(KEYCODE code);
 
 #endif // KEYBOARD_H

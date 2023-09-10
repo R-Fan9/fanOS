@@ -99,18 +99,26 @@ const int32_t INVALID_SCANCODE = 0;
 
 __attribute__((interrupt)) void keyboard_irq1_handler(int_frame_t *frame) {
   (void)frame;
-  uint8_t status = inb(KEYBOARD_STATUS);
-  if (status & 0x01) {
+
+  if (inb(KEYBOARD_STATUS) & 0x01) {
     int8_t code = inb(KEYBOARD_DATA);
     if (code >= 0) {
-      print_char(keys[(uint8_t)code]);
+      scancode = code;
+      int8_t c = keyboard_key_to_ascii(keys[(uint8_t)code]);
+      print_char(c);
     }
   }
   send_pic_eoi(1);
 }
 
 KEYCODE keyboard_get_last_key() {
-  return scancode != INVALID_SCANCODE ? (KEYCODE)keys[scancode] : KEY_UNKNOWN;
+  if (scancode != INVALID_SCANCODE) {
+    KEYCODE key = (KEYCODE)keys[scancode];
+    return key;
+  }
+  return KEY_UNKNOWN;
 }
 
 void keyboard_discard_last_key() { scancode = INVALID_SCANCODE; }
+
+int8_t keyboard_key_to_ascii(KEYCODE code) { return code; }
